@@ -1,0 +1,15 @@
+# ── Web Framework ────────────────────────────────────────────
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+
+# ── Validasi ─────────────────────────────────────────────────
+pydantic==2.7.0
+pydantic-settings==2.2.1
+
+# ── Image Processing ─────────────────────────────────────────
+Pillow==10.3.0
+numpy==1.26.4
+
+# ── ONNX Inference (digunakan saat USE_MOCK_MODEL=false) ─────
+onnxruntime==1.17.3

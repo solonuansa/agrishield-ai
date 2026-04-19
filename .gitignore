@@ -1,0 +1,57 @@
+# ============================================================
+# AgriShield AI — .gitignore
+# ============================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# --- Node / Frontend ---
+node_modules/
+dist/
+.cache/
+.parcel-cache/
+*.local
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Docker ---
+*.override.yml
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Database ---
+*.sqlite3
+*.db
+
+# --- ML Training (seluruh folder dikecualikan) ---
+ml-training/
+
+# --- Temporary / OS ---
+*.tmp
+*.bak
+*.orig
+.cache/
