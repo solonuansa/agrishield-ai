@@ -1,0 +1,26 @@
+<svg width="960" height="720" viewBox="0 0 960 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="960" height="720" rx="24" fill="#173726"/>
+  <rect x="40" y="40" width="880" height="640" rx="18" fill="#1E4731"/>
+  <path d="M0 540C140 488 236 586 370 548C512 507 599 415 742 444C824 460 888 503 960 538V720H0V540Z" fill="#2B5A40"/>
+  <path d="M0 588C111 560 215 634 342 608C461 584 577 499 689 525C800 550 875 613 960 632V720H0V588Z" fill="#3A7455"/>
+  <ellipse cx="784" cy="208" rx="102" ry="102" fill="#E7BA93" fill-opacity="0.22"/>
+  <rect x="536" y="186" width="214" height="388" rx="22" fill="#F4EEE3"/>
+  <rect x="548" y="202" width="190" height="343" rx="14" fill="#FCF8F1"/>
+  <rect x="566" y="242" width="154" height="94" rx="10" fill="#DCEADF"/>
+  <path d="M644 263C644 291 616 313 581 313C612 295 619 270 620 255C629 255 637 258 644 263Z" fill="#3C7A59"/>
+  <path d="M640 296C617 331 574 339 543 328C566 321 585 308 593 287C603 263 601 243 596 228C617 243 649 265 640 296Z" fill="#2E6246"/>
+  <rect x="566" y="360" width="154" height="14" rx="7" fill="#C5D7C9"/>
+  <rect x="566" y="386" width="120" height="14" rx="7" fill="#C5D7C9"/>
+  <rect x="566" y="412" width="102" height="14" rx="7" fill="#C5D7C9"/>
+  <rect x="136" y="328" width="322" height="252" rx="22" fill="#EFD4BB"/>
+  <rect x="164" y="364" width="266" height="170" rx="14" fill="#F6E9D8"/>
+  <path d="M188 513C220 448 318 418 404 434C375 478 292 519 188 513Z" fill="#A46A4C" fill-opacity="0.42"/>
+  <circle cx="308" cy="248" r="66" fill="#D9B190"/>
+  <path d="M260 250C262 214 286 192 318 188C353 184 378 209 385 248" stroke="#C88E68" stroke-width="18" stroke-linecap="round"/>
+  <rect x="264" y="286" width="130" height="176" rx="64" fill="#C98864"/>
+  <rect x="300" y="332" width="80" height="84" rx="18" fill="#2A6146"/>
+  <rect x="286" y="340" width="108" height="122" rx="20" fill="#2D694B"/>
+  <path d="M352 386C352 419 328 446 300 448C319 432 323 398 320 375C333 375 344 379 352 386Z" fill="#6FA884"/>
+  <path d="M350 420C334 450 294 465 264 456C287 449 308 436 316 412C324 388 319 368 311 354C337 370 364 392 350 420Z" fill="#548765"/>
+  <rect x="128" y="582" width="692" height="4" fill="#D9B190" fill-opacity="0.45"/>
+</svg>

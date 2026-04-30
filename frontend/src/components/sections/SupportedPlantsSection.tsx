@@ -41,7 +41,7 @@ function CropColumn({ crop, index }: { crop: (typeof crops)[number]; index: numb
       <div className="flex items-center gap-3 mb-6">
         <Icon className="h-5 w-5 text-forest-600" strokeWidth={1.5} />
         <h3 className="font-serif text-2xl font-medium text-forest-700">{crop.name}</h3>
-        <span className="text-xs text-ink-muted">{crop.diseases.length} penyakit</span>
+        <span className="text-sm text-ink-muted">{crop.diseases.length} penyakit</span>
       </div>
       <div>
         {crop.diseases.map((disease) => (
@@ -49,8 +49,8 @@ function CropColumn({ crop, index }: { crop: (typeof crops)[number]; index: numb
             key={disease.name}
             className="flex items-baseline justify-between gap-4 py-3 border-b border-cream-darker/30"
           >
-            <span className="text-sm text-ink-soft">{disease.name}</span>
-            <span className="text-xs italic text-ink-muted shrink-0">{disease.sci}</span>
+            <span className="text-base text-ink-soft">{disease.name}</span>
+            <span className="shrink-0 text-sm italic text-ink-muted">{disease.sci}</span>
           </div>
         ))}
       </div>
@@ -62,8 +62,8 @@ export default function SupportedPlantsSection() {
   return (
     <section className="bg-cream fluid-py">
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
-        <div className="mb-14">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-clay mb-4">
+        <div className="mb-12">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-clay">
             Tanaman Didukung
           </p>
           <h2 className="font-serif text-4xl sm:text-5xl font-semibold text-forest-700 leading-[1.05] max-w-lg">
@@ -71,7 +71,7 @@ export default function SupportedPlantsSection() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:gap-16">
           {crops.map((crop, index) => (
             <CropColumn key={crop.name} crop={crop} index={index} />
           ))}

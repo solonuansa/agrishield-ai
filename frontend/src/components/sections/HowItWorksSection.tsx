@@ -12,7 +12,7 @@ const steps = [
   {
     icon: Brain,
     title: "Analisis AI",
-    desc: "Model EfficientNet-B3 menganalisis gambar dan mengidentifikasi jenis penyakit dalam hitungan detik.",
+    desc: "Sistem AgriShield membaca gejala dari foto dan menampilkan hasil diagnosis dalam hitungan detik.",
   },
   {
     icon: ClipboardCheck,
@@ -36,11 +36,11 @@ function StepCard({ step, index }: { step: (typeof steps)[number]; index: number
           <Icon className="h-5 w-5" strokeWidth={1.5} />
         </div>
         <div>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-clay">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">
             Langkah {String(index + 1).padStart(2, "0")}
           </span>
           <h3 className="font-serif text-xl font-medium text-forest-700 mt-1 mb-2">{step.title}</h3>
-          <p className="text-sm leading-relaxed text-ink-muted max-w-xs">{step.desc}</p>
+          <p className="max-w-xs text-base leading-relaxed text-ink-muted">{step.desc}</p>
         </div>
       </div>
     </motion.div>
@@ -51,9 +51,9 @@ export default function HowItWorksSection() {
   return (
     <section className="bg-cream-dark fluid-py">
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
           <div className="lg:col-span-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-clay mb-4">Cara Kerja</p>
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-clay">Cara Kerja</p>
             <h2 className="font-serif text-4xl sm:text-5xl font-semibold text-forest-700 leading-[1.05]">
               Semudah
               <br />

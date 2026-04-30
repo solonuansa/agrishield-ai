@@ -3,11 +3,11 @@
 function Stat({ value, suffix, label }: { value: number; suffix: string; label: string }) {
   return (
     <div className="text-left">
-      <p className="font-serif text-4xl sm:text-5xl font-semibold text-forest-700 leading-none">
+      <p className="font-serif text-4xl font-semibold leading-none text-forest-700 sm:text-5xl lg:text-6xl">
         {value.toLocaleString("id-ID")}
         {suffix}
       </p>
-      <p className="mt-2 text-xs uppercase tracking-[0.15em] text-ink-muted">{label}</p>
+      <p className="mt-2 text-sm uppercase tracking-[0.13em] text-ink-muted">{label}</p>
     </div>
   );
 }
@@ -15,7 +15,7 @@ function Stat({ value, suffix, label }: { value: number; suffix: string; label: 
 export default function StatsSection() {
   return (
     <section className="border-b border-cream-darker/40 bg-cream">
-      <div className="mx-auto max-w-6xl px-6 lg:px-8 py-14 sm:py-16">
+      <div className="mx-auto max-w-6xl px-6 py-12 sm:py-14 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           <Stat value={10000} suffix="+" label="Petani Terbantu" />
           <Stat value={9} suffix="" label="Penyakit Dideteksi" />

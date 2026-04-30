@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { clearSession, readSession } from "@/lib/auth";
 
 const links = [
+  { href: "/", label: "Home" },
   { href: "/scan", label: "Scan" },
   { href: "/map", label: "Peta" },
   { href: "/community", label: "Komunitas" },
@@ -24,25 +25,33 @@ export default function Navbar() {
     }
   };
 
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
   return (
-    <header className="sticky top-0 z-50 border-b border-cream-darker/50 bg-cream/85 backdrop-blur-xl">
-      <div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-cream-darker/60 bg-cream/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6 lg:h-[4.1rem] lg:px-8">
         <Link href="/" className="group flex items-baseline gap-2">
-          <span className="font-serif text-3xl font-semibold tracking-tight text-forest-700">AgriShield</span>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-warm-gray">AI</span>
+          <span className="font-serif text-[1.75rem] font-semibold tracking-tight text-forest-700">AgriShield</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-warm-gray">AI</span>
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-7 md:flex">
           {links.map((link) => {
-            const active = pathname === link.href;
+            const active = isActive(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={active ? "relative text-sm font-semibold text-forest-700" : "relative text-sm font-medium text-ink-muted transition-colors hover:text-forest-600"}
+                className={active ? "relative text-[0.97rem] font-semibold text-forest-700" : "relative text-[0.97rem] font-medium text-ink-muted transition-colors hover:text-forest-600"}
               >
                 {link.label}
-                {active && <span className="absolute -bottom-1 left-0 right-0 h-px bg-forest-500/40" />}
+                {active && <span className="absolute -bottom-1 left-0 right-0 h-px bg-forest-500/45" />}
               </Link>
             );
           })}
@@ -51,15 +60,15 @@ export default function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           {session ? (
             <>
-              <Link href="/dashboard" className="btn-secondary">{session.user.full_name.split(" ")[0]}</Link>
-              <button type="button" onClick={handleLogout} className="btn-primary bg-clay hover:bg-clay-dark">
+              <Link href="/dashboard" className="btn-secondary min-h-10 px-3.5 py-2 text-[0.9rem]">{session.user.full_name.split(" ")[0]}</Link>
+              <button type="button" onClick={handleLogout} className="btn-primary min-h-10 bg-clay px-3.5 py-2 text-[0.9rem] hover:bg-clay-dark">
                 Keluar
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="btn-secondary">Masuk</Link>
-              <Link href="/login?mode=register" className="btn-primary">Daftar</Link>
+              <Link href="/login" className="btn-secondary min-h-10 px-3.5 py-2 text-[0.9rem]">Masuk</Link>
+              <Link href="/login?mode=register" className="btn-primary min-h-10 px-3.5 py-2 text-[0.9rem]">Daftar</Link>
             </>
           )}
         </div>
@@ -80,7 +89,7 @@ export default function Navbar() {
 
       {open && (
         <div className="border-t border-cream-darker/50 bg-cream/95 px-6 pb-6 pt-4 md:hidden">
-          <nav className="flex flex-col gap-3">
+          <nav className="flex flex-col gap-2">
             {links.map((link) => (
               <Link
                 key={link.href}
@@ -122,4 +131,3 @@ export default function Navbar() {
     </header>
   );
 }
-

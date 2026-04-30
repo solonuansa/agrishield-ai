@@ -8,9 +8,9 @@ import { formatDateID } from "@/lib/ui";
 
 type DashboardStats = {
   total_scans: number;
-  healthy_count: number;
-  disease_count: number;
-  warning_count: number;
+  completed_scans: number;
+  disease_detected: number;
+  healthy_detected: number;
 };
 
 type ScanResponse = {
@@ -54,16 +54,16 @@ function DashboardContent() {
           <p className="mt-1 text-xs uppercase tracking-wider text-ink-muted">Total Scan</p>
         </div>
         <div className="border-b border-cream-darker py-6 lg:border-r">
-          <p className="font-serif text-3xl font-semibold text-forest-700">{stats?.disease_count ?? 0}</p>
+          <p className="font-serif text-3xl font-semibold text-forest-700">{stats?.disease_detected ?? 0}</p>
           <p className="mt-1 text-xs uppercase tracking-wider text-ink-muted">Penyakit</p>
         </div>
         <div className="border-b border-cream-darker py-6 lg:border-r">
-          <p className="font-serif text-3xl font-semibold text-forest-700">{stats?.healthy_count ?? 0}</p>
+          <p className="font-serif text-3xl font-semibold text-forest-700">{stats?.healthy_detected ?? 0}</p>
           <p className="mt-1 text-xs uppercase tracking-wider text-ink-muted">Sehat</p>
         </div>
         <div className="border-b border-cream-darker py-6">
-          <p className="font-serif text-3xl font-semibold text-clay">{stats?.warning_count ?? 0}</p>
-          <p className="mt-1 text-xs uppercase tracking-wider text-ink-muted">Peringatan</p>
+          <p className="font-serif text-3xl font-semibold text-clay">{stats?.completed_scans ?? 0}</p>
+          <p className="mt-1 text-xs uppercase tracking-wider text-ink-muted">Selesai Diproses</p>
         </div>
       </div>
 

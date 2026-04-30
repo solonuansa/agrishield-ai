@@ -39,7 +39,13 @@ export default function LoginPage() {
   const nextPath = useMemo(() => {
     const rawNext = getSearchParam("next");
     if (!rawNext) return "/dashboard";
-    return rawNext.startsWith("/") ? rawNext : "/dashboard";
+
+    try {
+      const decodedNext = decodeURIComponent(rawNext);
+      return decodedNext.startsWith("/") ? decodedNext : "/dashboard";
+    } catch {
+      return rawNext.startsWith("/") ? rawNext : "/dashboard";
+    }
   }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

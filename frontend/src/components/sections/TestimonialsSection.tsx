@@ -37,15 +37,15 @@ function Testimonial({ t, index }: { t: (typeof testimonials)[number]; index: nu
         {t.quote}
       </blockquote>
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center bg-forest-700 text-cream text-xs font-semibold">
+        <div className="flex h-10 w-10 items-center justify-center bg-forest-700 text-sm font-semibold text-cream">
           {t.name
             .split(" ")
             .map((chunk) => chunk[0])
             .join("")}
         </div>
         <div>
-          <p className="text-sm font-medium text-ink-soft">{t.name}</p>
-          <p className="text-xs text-ink-muted">{t.role}</p>
+          <p className="text-base font-medium text-ink-soft">{t.name}</p>
+          <p className="text-sm text-ink-muted">{t.role}</p>
         </div>
       </div>
     </motion.div>
@@ -56,14 +56,14 @@ export default function TestimonialsSection() {
   return (
     <section className="bg-cream-dark fluid-py">
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
-        <div className="mb-14">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-clay mb-4">Testimoni</p>
+        <div className="mb-12">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-clay">Testimoni</p>
           <h2 className="font-serif text-4xl sm:text-5xl font-semibold text-forest-700 leading-[1.05] max-w-lg">
             Apa kata <span className="italic">petani</span>.
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-3 lg:gap-12">
           {testimonials.map((t, index) => (
             <Testimonial key={t.name} t={t} index={index} />
           ))}
