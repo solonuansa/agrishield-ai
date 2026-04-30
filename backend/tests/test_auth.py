@@ -21,6 +21,7 @@ async def test_register_success():
     data = response.json()
     assert data["success"] is True
     assert "access_token" in data["data"]
+    assert "refresh_token" in data["data"]
     assert data["data"]["user"]["email"] == "petani@test.com"
 
 

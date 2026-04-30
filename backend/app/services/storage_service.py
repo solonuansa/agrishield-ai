@@ -3,6 +3,7 @@ Service untuk upload dan manajemen file di Cloudflare R2.
 Menggunakan boto3 dengan S3-compatible API.
 """
 
+import asyncio
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -50,7 +51,8 @@ async def upload_scan_image(file: UploadFile, scan_id: uuid.UUID) -> str:
 
     try:
         client = _get_client()
-        client.put_object(
+        await asyncio.to_thread(
+            client.put_object,
             Bucket=settings.r2_bucket_name,
             Key=key,
             Body=content,
@@ -70,11 +72,15 @@ def get_public_url(image_key: str) -> str | None:
     return f"{settings.r2_public_url.rstrip('/')}/{image_key}"
 
 
-def delete_scan_image(image_key: str) -> None:
+async def delete_scan_image(image_key: str) -> None:
     """Hapus gambar dari R2. Digunakan jika scan dibatalkan/dihapus."""
     try:
         client = _get_client()
-        client.delete_object(Bucket=settings.r2_bucket_name, Key=image_key)
+        await asyncio.to_thread(
+            client.delete_object,
+            Bucket=settings.r2_bucket_name,
+            Key=image_key,
+        )
         logger.info(f"Gambar dihapus dari R2: {image_key}")
     except (BotoCoreError, ClientError) as exc:
         # Jangan raise — penghapusan gagal tidak boleh break alur utama

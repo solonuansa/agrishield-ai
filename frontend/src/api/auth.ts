@@ -14,6 +14,7 @@ export interface User {
 
 export interface AuthResponse {
   access_token: string;
+  refresh_token: string;
   token_type: string;
   user: User;
 }
@@ -45,6 +46,14 @@ export const authApi = {
     const { data } = await apiClient.post<{ success: boolean; data: AuthResponse }>(
       "/auth/login",
       payload
+    );
+    return data.data;
+  },
+
+  refresh: async (refreshToken: string): Promise<AuthResponse> => {
+    const { data } = await apiClient.post<{ success: boolean; data: AuthResponse }>(
+      "/auth/refresh",
+      { refresh_token: refreshToken }
     );
     return data.data;
   },

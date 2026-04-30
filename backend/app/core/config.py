@@ -13,7 +13,8 @@ class Settings(BaseSettings):
     # App
     environment: str = "development"
     secret_key: str = "dev-secret-key-ganti-di-production"
-    access_token_expire_minutes: int = 60 * 24 * 7  # 7 hari
+    access_token_expire_minutes: int = 15  # 15 menit
+    refresh_token_expire_days: int = 7  # 7 hari
 
     # Database
     database_url: str = "postgresql+asyncpg://postgres:postgres@db:5432/agrishield"

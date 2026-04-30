@@ -97,10 +97,14 @@ async def _analyze_scan_async(task, scan_id: str) -> dict:
 
         except Exception as exc:
             logger.error(f"Error analisis scan {scan_id}: {exc}")
-            scan.status = "failed"
-            scan.error_message = str(exc)
-            await db.commit()
-            raise task.retry(exc=exc, countdown=2 ** task.request.retries * 30)
+            try:
+                raise task.retry(exc=exc, countdown=2 ** task.request.retries * 30)
+            except task.MaxRetriesExceededError:
+                scan.status = "failed"
+                scan.error_message = str(exc)
+                await db.commit()
+                logger.error(f"Scan {scan_id} gagal setelah {task.max_retries}x retry")
+                return {"scan_id": scan_id, "status": "failed", "error": str(exc)}
 
 
 async def _download_image_from_r2(image_key: str) -> bytes:
@@ -123,10 +127,11 @@ async def _download_via_boto3(image_key: str) -> bytes:
     """Download gambar dari R2 menggunakan boto3 (untuk bucket private)."""
     import asyncio
 
+    import boto3
+
     from app.core.config import settings
 
     def _sync_download():
-        import boto3
         client = boto3.client(
             "s3",
             endpoint_url=settings.r2_endpoint,
@@ -137,8 +142,7 @@ async def _download_via_boto3(image_key: str) -> bytes:
         response = client.get_object(Bucket=settings.r2_bucket_name, Key=image_key)
         return response["Body"].read()
 
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, _sync_download)
+    return await asyncio.to_thread(_sync_download)
 
 
 async def _call_ml_service(

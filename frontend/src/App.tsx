@@ -10,6 +10,7 @@ import CommunityPage from "@/pages/CommunityPage";
 import PostDetailPage from "@/pages/PostDetailPage";
 import AdminPage from "@/pages/AdminPage";
 import NotFoundPage from "@/pages/NotFoundPage";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -18,13 +19,44 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/scan" element={<ScanPage />} />
-        <Route path="/history" element={<HistoryPage />} />
         <Route path="/map" element={<MapPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/fields" element={<FieldsPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<PostDetailPage />} />
-        <Route path="/admin" element={<AdminPage />} />
+
+        {/* Route yang memerlukan autentikasi */}
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <HistoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fields"
+          element={
+            <ProtectedRoute>
+              <FieldsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute adminOnly>
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

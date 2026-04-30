@@ -25,7 +25,7 @@ export default function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: (payload: LoginPayload) => authApi.login(payload),
     onSuccess: (data) => {
-      setAuth(data.user, data.access_token);
+      setAuth(data.user, data.access_token, data.refresh_token);
       navigate("/dashboard");
     },
     onError: (err: unknown) => {
@@ -37,7 +37,7 @@ export default function LoginPage() {
   const registerMutation = useMutation({
     mutationFn: (payload: RegisterPayload) => authApi.register(payload),
     onSuccess: (data) => {
-      setAuth(data.user, data.access_token);
+      setAuth(data.user, data.access_token, data.refresh_token);
       navigate("/dashboard");
     },
     onError: (err: unknown) => {
