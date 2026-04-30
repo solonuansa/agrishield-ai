@@ -11,6 +11,7 @@ geoalchemy2==0.15.1
 # ── Validasi & Settings ───────────────────────────────────────
 pydantic==2.7.0
 pydantic-settings==2.2.1
+email-validator==2.1.1
 
 # ── Auth ─────────────────────────────────────────────────────
 python-jose[cryptography]==3.3.0

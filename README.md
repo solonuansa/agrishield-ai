@@ -1,4 +1,4 @@
-# 🌿 AgriShield AI
+# AgriShield AI
 
 **Platform deteksi penyakit tanaman berbasis AI untuk petani Indonesia.**
 
@@ -21,22 +21,22 @@ AgriShield AI hadir sebagai solusi digital yang dapat diakses kapan saja, di man
 
 ## Fitur Utama
 
-### 🔍 Deteksi Penyakit Instan
+### Deteksi Penyakit Instan
 Upload foto daun tanaman, AI menganalisis dan mengidentifikasi penyakit dalam hitungan detik. Didukung model EfficientNet-B3 yang di-fine-tune khusus untuk tanaman padi dan jagung Indonesia.
 
-### 💊 Rekomendasi Penanganan Berbasis AI
+### Rekomendasi Penanganan Berbasis AI
 Setelah deteksi, sistem menghasilkan rekomendasi penanganan yang praktis menggunakan Generative AI (Claude). Langkah-langkah ditulis dalam Bahasa Indonesia yang mudah dipahami petani, lengkap dengan nama produk, dosis, dan estimasi biaya.
 
-### 🗺️ Peta Persebaran Penyakit
+### Peta Persebaran Penyakit
 Visualisasi heatmap interaktif yang menampilkan persebaran penyakit di seluruh Indonesia secara real-time. Data dikumpulkan dari laporan pengguna dan dapat difilter per jenis penyakit dan rentang waktu.
 
-### ⚠️ Sistem Peringatan Dini
+### Sistem Peringatan Dini
 Notifikasi otomatis ketika wabah penyakit terdeteksi di wilayah terdekat, memungkinkan petani mengambil tindakan pencegahan sebelum lahan mereka terdampak.
 
-### 📊 Dashboard Analitik
+### Dashboard Analitik
 Dashboard khusus untuk penyuluh pertanian, dinas pertanian, dan NGO. Menampilkan tren penyakit, peta area rawan, statistik laporan, dan mendukung export data CSV/PDF.
 
-### 👥 Komunitas Petani
+### Komunitas Petani
 Forum diskusi antar petani untuk berbagi pengalaman, foto gejala, dan solusi penanganan. Dimoderasi oleh penyuluh pertanian terverifikasi.
 
 ---
@@ -45,8 +45,8 @@ Forum diskusi antar petani untuk berbagi pengalaman, foto gejala, dan solusi pen
 
 | Tanaman | Penyakit yang Dapat Dideteksi |
 |---|---|
-| 🌾 **Padi** | Blast Padi, Hawar Daun Bakteri, Bercak Cokelat, Hispa |
-| 🌽 **Jagung** | Hawar Daun Utara, Karat Jagung, Bercak Daun Abu-abu |
+| **Padi** | Blast Padi, Hawar Daun Bakteri, Bercak Cokelat, Hispa |
+| **Jagung** | Hawar Daun Utara, Karat Jagung, Bercak Daun Abu-abu |
 
 > Lebih banyak tanaman dan penyakit akan ditambahkan pada fase pengembangan berikutnya.
 
@@ -56,7 +56,7 @@ Forum diskusi antar petani untuk berbagi pengalaman, foto gejala, dan solusi pen
 
 | Layer | Teknologi |
 |---|---|
-| **Frontend** | React 18, Vite 5, Tailwind CSS 3, React Router 6, React Query 5, Zustand 4 |
+| **Frontend** | Next.js 16, React 19, Tailwind CSS 4, TypeScript 5 |
 | **Backend API** | FastAPI 0.110, Python 3.11, SQLAlchemy 2, Alembic, Pydantic 2 |
 | **Task Queue** | Celery 5, Redis 7 |
 | **Database** | PostgreSQL 16 + PostGIS 3 |
@@ -72,6 +72,7 @@ Forum diskusi antar petani untuk berbagi pengalaman, foto gejala, dan solusi pen
 ### Prasyarat
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (sudah include Docker Compose)
+- [Node.js 22+](https://nodejs.org/) (untuk dev frontend di host)
 - Git
 
 ### Langkah Setup
@@ -92,39 +93,97 @@ Edit `.env` — minimal isi:
 - `GEMINI_API_KEY` — untuk fitur rekomendasi AI (Google Gemini)
 - `R2_*` — konfigurasi Cloudflare R2 untuk object storage
 
-**3. Jalankan semua service**
+**3. Jalankan semua service dengan Docker Compose**
+
 ```bash
-make dev
-# atau
+# Windows (PowerShell / CMD)
+docker compose up -d
+
+# Linux / macOS
 docker compose up -d
 ```
 
 **4. Jalankan migrasi database**
 ```bash
-make migrate
+docker compose exec api alembic upgrade head
 ```
 
 **5. Akses aplikasi**
 
 | Service | URL |
 |---|---|
-| Aplikasi web | http://localhost |
+| Aplikasi web (via Nginx) | http://localhost |
+| Frontend langsung (Next.js) | http://localhost:3000 |
 | API Swagger docs | http://localhost/docs |
-| Frontend (Vite dev) | http://localhost:5173 |
 | Backend API langsung | http://localhost:8000 |
+
+> **Catatan**: Di development, frontend berjalan pada port `3000` (Next.js dev server). Nginx di port `80` akan proxy ke frontend. Jika port `80` sudah dipakai, ubah mapping port di `docker-compose.yml`.
+
+---
+
+## Menjalankan Frontend Tanpa Docker (Dev Mode)
+
+Untuk pengembangan frontend dengan hot-reload yang lebih cepat, jalankan langsung di host:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend akan tersedia di **http://localhost:3000**
 
 ---
 
 ## Perintah Umum
 
+### Docker Compose (Windows & Linux)
+
 ```bash
-make dev              # Jalankan semua service (development)
-make down             # Hentikan semua service
-make logs s=api       # Lihat log service (api/worker/ml-service/frontend/db)
-make migrate          # Jalankan migrasi database
-make migrate-new m="deskripsi"  # Buat file migrasi baru
-make test-backend     # Jalankan unit test backend
-make shell-db         # Masuk ke PostgreSQL shell
+# Jalankan semua service
+docker compose up -d
+
+# Hentikan semua service
+docker compose down
+
+# Lihat log service
+docker compose logs -f api
+docker compose logs -f worker
+docker compose logs -f ml-service
+docker compose logs -f frontend
+
+# Restart service tertentu
+docker compose restart frontend
+
+# Rebuild setelah ubah Dockerfile
+docker compose build frontend
+docker compose up -d frontend
+```
+
+### Database
+
+```bash
+# Jalankan migrasi
+docker compose exec api alembic upgrade head
+
+# Rollback satu migrasi
+docker compose exec api alembic downgrade -1
+
+# Buat migrasi baru
+docker compose exec api alembic revision --autogenerate -m "deskripsi"
+
+# Masuk ke PostgreSQL
+docker compose exec db psql -U postgres -d agrishield
+```
+
+### Testing
+
+```bash
+# Backend unit test
+cd backend && pytest tests/ -v
+
+# Frontend build test
+cd frontend && npm run build
 ```
 
 ---
@@ -165,8 +224,8 @@ certbot certonly --standalone -d agrishield.id -d www.agrishield.id
 
 **4. Jalankan service**
 ```bash
-make prod-up
-make prod-migrate
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml exec api alembic upgrade head
 ```
 
 ### CI/CD Otomatis
@@ -191,13 +250,13 @@ Push ke branch `main` → GitHub Actions otomatis:
 
 ```
 agrishield-ai/
-├── frontend/          # React + Vite + Tailwind
+├── frontend/          # Next.js 16 + React 19 + Tailwind CSS 4
 ├── backend/           # FastAPI utama (auth, scan, dll)
 ├── ml-service/        # FastAPI inferensi model ONNX
 ├── ml-training/       # Notebook & script training (tidak di-push ke git)
 ├── nginx/             # Konfigurasi reverse proxy
 ├── docker-compose.yml
-└── Makefile
+└── docker-compose.prod.yml
 ```
 
 ---
@@ -206,11 +265,11 @@ agrishield-ai/
 
 | Phase | Deskripsi | Status |
 |---|---|---|
-| **Phase 0** | Foundation & Setup | ✅ Selesai |
-| **Phase 1** | MVP Core (Scan & Diagnosa) | 🔄 Dalam pengerjaan |
-| **Phase 2** | Heatmap & Auth lengkap | ⏳ Belum mulai |
-| **Phase 3** | Early Warning & Smart Recommendation | ⏳ Belum mulai |
-| **Phase 4** | Community & Analytics | ⏳ Belum mulai |
+| **Phase 0** | Foundation & Setup | Selesai |
+| **Phase 1** | MVP Core (Scan & Diagnosa) | Dalam pengerjaan |
+| **Phase 2** | Heatmap & Auth lengkap | Belum mulai |
+| **Phase 3** | Early Warning & Smart Recommendation | Belum mulai |
+| **Phase 4** | Community & Analytics | Belum mulai |
 
 ---
 
