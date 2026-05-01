@@ -1,6 +1,7 @@
 """
 Service untuk query data peta/heatmap persebaran penyakit.
 Hanya file ini yang boleh menjalankan query geospatial.
+Hasil di-cache di Redis selama 120 detik karena bersifat publik dan jarang berubah.
 """
 
 import logging
@@ -8,6 +9,7 @@ import logging
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.cache import get_or_set
 from app.models.scan import Scan, ScanResult
 from app.schemas.map import DiseasePoint, HeatmapResponse
 
@@ -16,8 +18,10 @@ logger = logging.getLogger(__name__)
 # Jumlah titik maksimum yang dikembalikan — cukup untuk Leaflet tanpa lag
 MAX_POINTS = 500
 
+CACHE_TTL_SECONDS = 120
 
-async def get_heatmap_data(
+
+async def _fetch_heatmap_data(
     db: AsyncSession,
     crop_type: str | None = None,
     disease: str | None = None,
@@ -84,3 +88,22 @@ async def get_heatmap_data(
 
     logger.info(f"Heatmap: {len(points)} titik penyakit (filter: crop={crop_type}, bulan={months})")
     return HeatmapResponse(points=points, total=len(points))
+
+
+async def get_heatmap_data(
+    db: AsyncSession,
+    crop_type: str | None = None,
+    disease: str | None = None,
+    months: int = 3,
+) -> HeatmapResponse:
+    """Ambil heatmap data dengan caching Redis 120 detik."""
+    cache_key = f"heatmap:{crop_type or 'all'}:{disease or 'all'}:{months}"
+
+    result = await get_or_set(
+        key=cache_key,
+        factory=lambda: _fetch_heatmap_data(db, crop_type, disease, months),
+        ttl_seconds=CACHE_TTL_SECONDS,
+        serializer=lambda obj: obj.model_dump_json(),
+        deserializer=lambda raw: HeatmapResponse.model_validate_json(raw),
+    )
+    return result

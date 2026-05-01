@@ -85,7 +85,7 @@ export default function FeaturesSection() {
   );
 
   return (
-    <section id="fitur" className="bg-cream py-14 sm:py-16 lg:py-20">
+    <section id="fitur" className="bg-cream py-12 sm:py-14 lg:py-16">
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="mb-10 lg:mb-12">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.17em] text-clay">Fitur Utama</p>

@@ -60,7 +60,7 @@ function CropColumn({ crop, index }: { crop: (typeof crops)[number]; index: numb
 
 export default function SupportedPlantsSection() {
   return (
-    <section className="bg-cream fluid-py">
+    <section className="bg-cream py-12 sm:py-16 lg:py-18">
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="mb-12">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-clay">

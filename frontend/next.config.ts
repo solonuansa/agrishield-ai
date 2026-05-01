@@ -6,8 +6,14 @@ const nextConfig: NextConfig = {
   distDir: "out",
   trailingSlash: true,
   reactStrictMode: false,
+  compress: true,
+  poweredByHeader: false,
   images: {
     unoptimized: true,
+  },
+  // Reduce bundle size by optimizing package imports for heavy libraries
+  experimental: {
+    optimizePackageImports: ["recharts", "lucide-react", "framer-motion"],
   },
 };
 

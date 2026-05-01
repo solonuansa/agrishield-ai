@@ -24,7 +24,7 @@ const steps = [
 export default function HowItWorksSection() {
   return (
     <section id="fitur" className="bg-cream-dark">
-      <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20 lg:px-8">
+      <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16 lg:px-8">
         {/* Header */}
         <div className="mb-12 text-center">
           <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-clay">Cara Kerja</p>

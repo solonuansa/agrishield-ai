@@ -83,6 +83,11 @@ async def _analyze_scan_async(task, scan_id: str) -> dict:
             )
             await db.commit()
 
+            # Invalidate caches
+            from app.core.cache import delete_cache
+            await delete_cache(f"dashboard:{scan.user_id}")
+            await delete_cache("heatmap:*")
+
             logger.info(
                 f"Scan {scan_id} selesai: {prediction['disease']} "
                 f"(confidence={prediction['confidence']:.2%})"

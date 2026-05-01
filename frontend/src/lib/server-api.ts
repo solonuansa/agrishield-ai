@@ -11,13 +11,18 @@ const CANDIDATE_API_BASES = [
   "http://api:8000/api",
 ].filter(Boolean) as string[];
 
-export async function serverApiGet<T>(path: string): Promise<T | null> {
+export async function serverApiGet<T>(
+  path: string,
+  cache: RequestCache = "force-cache",
+  revalidateSeconds = 60
+): Promise<T | null> {
   for (const baseUrl of CANDIDATE_API_BASES) {
     const normalized = baseUrl.replace(/\/$/, "");
 
     try {
       const response = await fetch(`${normalized}${path}`, {
-        cache: "no-store",
+        cache,
+        next: { revalidate: revalidateSeconds },
         signal: AbortSignal.timeout(2500),
       });
 

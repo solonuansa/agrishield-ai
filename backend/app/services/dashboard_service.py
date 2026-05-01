@@ -1,6 +1,7 @@
 """
 Service untuk query statistik dashboard user.
 Semua agregasi dilakukan di sisi database untuk efisiensi.
+Hasil di-cache di Redis selama 60 detik untuk mengurangi beban DB.
 """
 
 import logging
@@ -10,6 +11,7 @@ from collections import defaultdict
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.cache import get_or_set
 from app.models.scan import Scan, ScanResult
 from app.schemas.dashboard import (
     CropBreakdown,
@@ -20,8 +22,10 @@ from app.schemas.dashboard import (
 
 logger = logging.getLogger(__name__)
 
+CACHE_TTL_SECONDS = 60
 
-async def get_dashboard_stats(user_id: uuid.UUID, db: AsyncSession) -> DashboardStats:
+
+async def _fetch_dashboard_stats(user_id: uuid.UUID, db: AsyncSession) -> DashboardStats:
     """
     Hitung statistik scan milik user: total, breakdown per tanaman,
     penyakit terbanyak, dan timeline 8 minggu terakhir.
@@ -105,3 +109,17 @@ async def get_dashboard_stats(user_id: uuid.UUID, db: AsyncSession) -> Dashboard
         top_diseases=top_diseases,
         timeline=timeline,
     )
+
+
+async def get_dashboard_stats(user_id: uuid.UUID, db: AsyncSession) -> DashboardStats:
+    """Ambil dashboard stats dengan caching Redis 60 detik."""
+    cache_key = f"dashboard:{user_id}"
+
+    result = await get_or_set(
+        key=cache_key,
+        factory=lambda: _fetch_dashboard_stats(user_id, db),
+        ttl_seconds=CACHE_TTL_SECONDS,
+        serializer=lambda obj: obj.model_dump_json(),
+        deserializer=lambda raw: DashboardStats.model_validate_json(raw),
+    )
+    return result

@@ -30,13 +30,14 @@ function confidenceColor(confidence: number) {
 export default function MapPage() {
   const { data: heatmap, isLoading, isError } = useQuery<HeatmapResponse>({
     queryKey: ["heatmap"],
-    queryFn: () => apiGet<HeatmapResponse>("/map/heatmap?months=6"),
+    queryFn: () => apiGet<HeatmapResponse>("/map/heatmap?months=6", null, "force-cache"),
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const [cropFilter, setCropFilter] = useState<"all" | "rice" | "corn">("all");
   const [minConfidence, setMinConfidence] = useState(0);
 
-  const allPoints = heatmap?.points ?? [];
+  const allPoints = useMemo(() => heatmap?.points ?? [], [heatmap?.points]);
 
   const filteredPoints = useMemo<HeatmapPoint[]>(() => {
     return allPoints.filter((p) => {
@@ -46,8 +47,14 @@ export default function MapPage() {
     });
   }, [allPoints, cropFilter, minConfidence]);
 
-  const highRisk = allPoints.filter((p) => p.confidence >= 0.85).length;
-  const provinces = new Set(allPoints.map((p) => `${p.lat.toFixed(1)}:${p.lng.toFixed(1)}`)).size;
+  const highRisk = useMemo(
+    () => allPoints.filter((p) => p.confidence >= 0.85).length,
+    [allPoints]
+  );
+  const provinces = useMemo(
+    () => new Set(allPoints.map((p) => `${p.lat.toFixed(1)}:${p.lng.toFixed(1)}`)).size,
+    [allPoints]
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">

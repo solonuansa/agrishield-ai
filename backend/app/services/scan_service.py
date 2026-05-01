@@ -105,6 +105,11 @@ async def create_scan(
     scan.celery_task_id = task.id
     scan.status = "processing"
 
+    # Invalidate user dashboard cache so next load reflects new scan
+    if user_id:
+        from app.core.cache import delete_cache
+        await delete_cache(f"dashboard:{user_id}")
+
     logger.info(f"Scan {scan_id} dibuat, task={task.id}")
     return scan
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { formatDateID } from "@/lib/ui";
@@ -24,9 +24,16 @@ function confidenceLabel(confidence: number) {
   return "Rendah";
 }
 
-function createDivIcon(confidence: number) {
+// Cache icons by discrete confidence buckets to avoid recreating L.divIcon on every render
+const iconCache = new Map<number, L.DivIcon>();
+
+function getDivIcon(confidence: number) {
+  // Round to 2 decimals for cache key — only a few unique values exist
+  const key = Math.round(confidence * 100);
+  if (iconCache.has(key)) return iconCache.get(key)!;
+
   const color = confidenceColor(confidence);
-  return L.divIcon({
+  const icon = L.divIcon({
     className: "custom-marker",
     html: `<div style="
       width:14px;height:14px;
@@ -38,16 +45,55 @@ function createDivIcon(confidence: number) {
     iconSize: [14, 14],
     iconAnchor: [7, 7],
   });
+  iconCache.set(key, icon);
+  return icon;
 }
 
 function FitBounds({ points }: { points: { lat: number; lng: number }[] }) {
   const map = useMap();
-  useMemo(() => {
+  useEffect(() => {
     if (points.length === 0) return;
     const bounds = L.latLngBounds(points.map((p) => [p.lat, p.lng]));
     map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
   }, [map, points]);
   return null;
+}
+
+function MarkersLayer({ points }: { points: HeatmapPoint[] }) {
+  const markers = useMemo(
+    () =>
+      points.map((point) => (
+        <Marker
+          key={point.scan_id}
+          position={[point.lat, point.lng]}
+          icon={getDivIcon(point.confidence)}
+        >
+          <Popup>
+            <div className="space-y-1 text-sm">
+              <p className="font-medium text-ink-soft">{point.disease}</p>
+              <p className="text-xs text-ink-muted">
+                {toCropLabel(point.crop_type)} — {formatDateID(`${point.month}-01`)}
+              </p>
+              <p className="text-xs">
+                Keyakinan:{" "}
+                <span
+                  className="font-semibold"
+                  style={{ color: confidenceColor(point.confidence) }}
+                >
+                  {Math.round(point.confidence * 100)}% ({confidenceLabel(point.confidence)})
+                </span>
+              </p>
+              <p className="text-[0.65rem] text-ink-muted">
+                Lat {point.lat.toFixed(4)}, Lng {point.lng.toFixed(4)}
+              </p>
+            </div>
+          </Popup>
+        </Marker>
+      )),
+    [points]
+  );
+
+  return <>{markers}</>;
 }
 
 interface HeatmapMapProps {
@@ -76,34 +122,7 @@ export default function HeatmapMap({ points }: HeatmapMapProps) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FitBounds points={points.map((p) => ({ lat: p.lat, lng: p.lng }))} />
-      {points.map((point) => (
-        <Marker
-          key={point.scan_id}
-          position={[point.lat, point.lng]}
-          icon={createDivIcon(point.confidence)}
-        >
-          <Popup>
-            <div className="space-y-1 text-sm">
-              <p className="font-medium text-ink-soft">{point.disease}</p>
-              <p className="text-xs text-ink-muted">
-                {toCropLabel(point.crop_type)} — {formatDateID(`${point.month}-01`)}
-              </p>
-              <p className="text-xs">
-                Keyakinan:{" "}
-                <span
-                  className="font-semibold"
-                  style={{ color: confidenceColor(point.confidence) }}
-                >
-                  {Math.round(point.confidence * 100)}% ({confidenceLabel(point.confidence)})
-                </span>
-              </p>
-              <p className="text-[0.65rem] text-ink-muted">
-                Lat {point.lat.toFixed(4)}, Lng {point.lng.toFixed(4)}
-              </p>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+      <MarkersLayer points={points} />
     </MapContainer>
   );
 }

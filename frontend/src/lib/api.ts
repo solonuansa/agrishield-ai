@@ -75,7 +75,12 @@ async function parseErrorMessage(response: Response): Promise<string> {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit, retry = true): Promise<T> {
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  retry = true,
+  cache: RequestCache = "no-store"
+): Promise<T> {
   const token = getAccessToken();
 
   const response = await fetch(`${API_BASE}${path}`, {
@@ -85,7 +90,7 @@ async function request<T>(path: string, init?: RequestInit, retry = true): Promi
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers || {}),
     },
-    cache: "no-store",
+    cache,
   });
 
   if (response.status === 401 && retry) {
@@ -131,13 +136,22 @@ export function getAuthHeaders(token?: string | null): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function apiGet<T>(path: string, token?: string | null): Promise<T> {
-  return request<T>(path, {
-    method: "GET",
-    headers: {
-      ...getAuthHeaders(token),
+export async function apiGet<T>(
+  path: string,
+  token?: string | null,
+  cache: RequestCache = "no-store"
+): Promise<T> {
+  return request<T>(
+    path,
+    {
+      method: "GET",
+      headers: {
+        ...getAuthHeaders(token),
+      },
     },
-  });
+    true,
+    cache
+  );
 }
 
 export async function apiPost<T>(
