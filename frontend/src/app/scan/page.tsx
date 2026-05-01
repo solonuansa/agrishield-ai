@@ -4,22 +4,10 @@ import { ChangeEvent, DragEvent, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Camera, UploadCloud } from "lucide-react";
 import { apiGet, apiPostForm, ApiError } from "@/lib/api";
+import { getAccessToken } from "@/lib/auth";
+import type { ScanResponse } from "@/types/api";
 
 type CropType = "rice" | "corn";
-
-type ScanResult = {
-  detected_disease: string;
-  confidence: number;
-  recommendation: string | null;
-};
-
-type ScanResponse = {
-  id: string;
-  crop_type: CropType;
-  status: "pending" | "processing" | "completed" | "failed";
-  created_at: string;
-  result: ScanResult | null;
-};
 
 function cropLabel(value: CropType) {
   return value === "rice" ? "Padi" : "Jagung";
@@ -96,7 +84,9 @@ export default function ScanPage() {
     }
 
     try {
-      const data = await apiPostForm<ScanResponse>("/scans", formData);
+      const token = getAccessToken();
+      const endpoint = token ? "/scans/auth" : "/scans";
+      const data = await apiPostForm<ScanResponse>(endpoint, formData, token);
       setScanData(data);
     } catch (error) {
       if (error instanceof ApiError) {

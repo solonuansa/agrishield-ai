@@ -57,18 +57,24 @@ export default function Navbar() {
           })}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-2.5 md:flex">
           {session ? (
             <>
-              <Link href="/dashboard" className="btn-secondary min-h-10 px-3.5 py-2 text-[0.9rem]">{session.user.full_name.split(" ")[0]}</Link>
-              <button type="button" onClick={handleLogout} className="btn-primary min-h-10 bg-clay px-3.5 py-2 text-[0.9rem] hover:bg-clay-dark">
+              <Link href="/dashboard" className="rounded-full border border-cream-darker px-3.5 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:border-ink-muted hover:text-ink">
+                {session.user.full_name.split(" ")[0]}
+              </Link>
+              <button type="button" onClick={handleLogout} className="rounded-full bg-clay px-3.5 py-1.5 text-xs font-semibold text-cream transition-colors hover:bg-clay-dark">
                 Keluar
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="btn-secondary min-h-10 px-3.5 py-2 text-[0.9rem]">Masuk</Link>
-              <Link href="/login?mode=register" className="btn-primary min-h-10 px-3.5 py-2 text-[0.9rem]">Daftar</Link>
+              <Link href="/login" className="rounded-full border border-cream-darker px-3.5 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:border-ink-muted hover:text-ink">
+                Masuk
+              </Link>
+              <Link href="/login?mode=register" className="rounded-full bg-forest-700 px-3.5 py-1.5 text-xs font-semibold text-cream transition-colors hover:bg-forest-800">
+                Daftar
+              </Link>
             </>
           )}
         </div>

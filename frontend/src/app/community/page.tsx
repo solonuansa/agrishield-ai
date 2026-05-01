@@ -1,23 +1,11 @@
-﻿import Link from "next/link";
-import { serverApiGet } from "@/lib/server-api";
+﻿"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { apiGet } from "@/lib/api";
+import { MOCK_COMMUNITY_POSTS } from "@/lib/mock-community";
 import { formatDateID } from "@/lib/ui";
-
-type CommunityAuthor = {
-  id: string;
-  full_name: string;
-};
-
-type CommunityPost = {
-  id: string;
-  title: string;
-  body: string;
-  category: string;
-  crop_type: "rice" | "corn" | null;
-  comment_count: number;
-  like_count: number;
-  created_at: string;
-  author: CommunityAuthor;
-};
+import type { CommunityPost } from "@/types/api";
 
 function cropLabel(value: CommunityPost["crop_type"]) {
   if (value === "rice") return "Padi";
@@ -25,8 +13,17 @@ function cropLabel(value: CommunityPost["crop_type"]) {
   return "Umum";
 }
 
-export default async function CommunityPage() {
-  const posts = (await serverApiGet<CommunityPost[]>("/community/posts?per_page=15")) ?? [];
+export default function CommunityPage() {
+  const { data: posts, isLoading, isError } = useQuery<CommunityPost[]>({
+    queryKey: ["community-posts"],
+    queryFn: async () => {
+      return apiGet<CommunityPost[]>("/community/posts?per_page=15");
+    },
+  });
+
+  const postList = posts ?? [];
+  const usingMockData = isError || postList.length === 0;
+  const displayedPosts = usingMockData ? MOCK_COMMUNITY_POSTS : postList;
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
@@ -43,32 +40,36 @@ export default async function CommunityPage() {
         </Link>
       </div>
 
-      {posts.length === 0 ? (
-        <div className="rounded border border-cream-darker bg-cream-dark/50 px-6 py-10 text-center text-sm text-ink-muted">
-          Belum ada diskusi publik. Jadilah yang pertama berbagi pengalaman.
-        </div>
+      {isLoading ? (
+        <p className="text-sm text-ink-muted">Memuat diskusi...</p>
       ) : (
-        <div className="divide-y divide-cream-darker/50">
-          {posts.map((post) => (
-            <Link key={post.id} href={`/community/${post.id}`} className="group block py-6 transition-colors">
-              <div className="mb-2 flex flex-wrap items-center gap-3 text-xs text-ink-muted">
-                <span className="rounded bg-forest-50 px-2 py-0.5 font-semibold uppercase tracking-wide text-forest-700">
-                  {cropLabel(post.crop_type)}
-                </span>
-                <span>{post.comment_count} balasan</span>
-                <span>{post.like_count} suka</span>
-                <span>{formatDateID(post.created_at)}</span>
-              </div>
-              <h3 className="font-serif text-2xl leading-snug text-forest-700 transition-colors group-hover:text-clay">
-                {post.title}
-              </h3>
-              <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-muted">{post.body}</p>
-              <p className="mt-2 text-sm text-ink-soft">oleh {post.author.full_name}</p>
-            </Link>
-          ))}
+        <div>
+          {usingMockData && (
+            <div className="mb-4 rounded border border-clay/25 bg-clay/10 px-4 py-3 text-sm text-clay-dark">
+              Menampilkan data diskusi contoh (mock) karena data komunitas belum tersedia dari server.
+            </div>
+          )}
+          <div className="divide-y divide-cream-darker/50">
+            {displayedPosts.map((post) => (
+              <Link key={post.id} href={`/community/post/?id=${post.id}`} className="group block py-6 transition-colors">
+                <div className="mb-2 flex flex-wrap items-center gap-3 text-xs text-ink-muted">
+                  <span className="rounded bg-forest-50 px-2 py-0.5 font-semibold uppercase tracking-wide text-forest-700">
+                    {cropLabel(post.crop_type)}
+                  </span>
+                  <span>{post.comment_count} balasan</span>
+                  <span>{post.like_count} suka</span>
+                  <span>{formatDateID(post.created_at)}</span>
+                </div>
+                <h3 className="font-serif text-2xl leading-snug text-forest-700 transition-colors group-hover:text-clay">
+                  {post.title}
+                </h3>
+                <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-muted">{post.body}</p>
+                <p className="mt-2 text-sm text-ink-soft">oleh {post.author.full_name}</p>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 }
-

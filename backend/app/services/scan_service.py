@@ -2,19 +2,23 @@
 
 import logging
 import uuid
+from io import BytesIO
 
 from fastapi import UploadFile
+from PIL import Image
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import BadRequestException, NotFoundException
 from app.models.scan import Scan, ScanResult
-from app.services.storage_service import get_public_url, upload_scan_image
+from app.services.storage_service import delete_scan_image, get_public_url, upload_scan_image
 
 logger = logging.getLogger(__name__)
 
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+MIN_IMAGE_DIMENSION = 256
+MAX_IMAGE_DIMENSION = 4096
 
 
 async def create_scan(
@@ -36,23 +40,64 @@ async def create_scan(
             "Gunakan JPEG, PNG, atau WebP."
         )
 
+    # Baca file ke memory untuk validasi size & dimension
+    content = await file.read()
+
+    # Validasi file size
+    if len(content) > MAX_FILE_SIZE_BYTES:
+        raise BadRequestException(
+            f"Ukuran file melebihi batas maksimal 10 MB ({len(content) / (1024 * 1024):.1f} MB)."
+        )
+
+    # Validasi dimensi gambar & cek decompression bomb
+    try:
+        img = Image.open(BytesIO(content))
+        img.verify()  # Verifikasi tanpa decode penuh
+        img = Image.open(BytesIO(content))  # Re-open setelah verify
+        width, height = img.size
+
+        if width < MIN_IMAGE_DIMENSION or height < MIN_IMAGE_DIMENSION:
+            raise BadRequestException(
+                f"Dimensi gambar terlalu kecil ({width}x{height}). "
+                f"Minimal {MIN_IMAGE_DIMENSION}x{MIN_IMAGE_DIMENSION} piksel."
+            )
+        if width > MAX_IMAGE_DIMENSION or height > MAX_IMAGE_DIMENSION:
+            raise BadRequestException(
+                f"Dimensi gambar terlalu besar ({width}x{height}). "
+                f"Maksimal {MAX_IMAGE_DIMENSION}x{MAX_IMAGE_DIMENSION} piksel."
+            )
+    except BadRequestException:
+        raise
+    except Exception as exc:
+        logger.warning(f"Gagal memvalidasi gambar: {exc}")
+        raise BadRequestException(
+            "File tidak dapat dibaca sebagai gambar. Pastikan file tidak rusak."
+        )
+
     scan_id = uuid.uuid4()
 
-    # Upload ke R2
-    image_key = await upload_scan_image(file, scan_id)
-
-    # Simpan record Scan
+    # Simpan record Scan terlebih dahulu (status pending)
     scan = Scan(
         id=scan_id,
         user_id=user_id,
         crop_type=crop_type,
-        image_key=image_key,
         status="pending",
         latitude=latitude,
         longitude=longitude,
     )
     db.add(scan)
     await db.flush()
+
+    # Upload ke R2
+    try:
+        image_key = await upload_scan_image(file, scan_id, content)
+        scan.image_key = image_key
+    except Exception as exc:
+        logger.error(f"Gagal upload gambar untuk scan {scan_id}: {exc}")
+        scan.status = "failed"
+        scan.error_message = "Gagal mengunggah gambar ke storage."
+        await db.flush()
+        raise BadRequestException("Gagal mengunggah gambar. Silakan coba lagi.")
 
     # Antrekan analisis async
     from app.tasks.scan_tasks import analyze_scan

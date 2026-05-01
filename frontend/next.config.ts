@@ -1,9 +1,18 @@
 import type { NextConfig } from "next";
+import withBundleAnalyzer from "@next/bundle-analyzer";
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: __dirname,
+  output: "export",
+  distDir: "out",
+  trailingSlash: true,
+  reactStrictMode: false,
+  images: {
+    unoptimized: true,
   },
 };
 
-export default nextConfig;
+const bundleAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
+
+export default bundleAnalyzer(nextConfig);

@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
 import { Loader2 } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
 import { readSession } from "@/lib/auth";
 
 interface ProtectedRouteProps {
@@ -14,29 +12,15 @@ export default function ProtectedRoute({
   children,
   adminOnly = false,
 }: ProtectedRouteProps) {
-  const router = useRouter();
-  const pathname = usePathname();
   const session = readSession();
-
   const isAuthenticated = Boolean(session?.token);
   const isAdmin = session?.user.role === "admin" || session?.user.role === "government";
-  const nextPath = useMemo(
-    () => encodeURIComponent(pathname || "/dashboard"),
-    [pathname]
-  );
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace(`/login?next=${nextPath}`);
-      return;
-    }
-
-    if (adminOnly && !isAdmin) {
-      router.replace("/dashboard");
-    }
-  }, [adminOnly, isAdmin, isAuthenticated, nextPath, router]);
 
   if (!isAuthenticated) {
+    if (typeof window !== "undefined") {
+      const currentPath = encodeURIComponent(window.location.pathname || "/dashboard");
+      window.location.replace(`/login?next=${currentPath}`);
+    }
     return (
       <div className="flex flex-1 items-center justify-center py-24">
         <div className="flex flex-col items-center gap-3">
@@ -48,6 +32,9 @@ export default function ProtectedRoute({
   }
 
   if (adminOnly && !isAdmin) {
+    if (typeof window !== "undefined") {
+      window.location.replace("/dashboard");
+    }
     return (
       <div className="flex flex-1 items-center justify-center py-24">
         <div className="flex flex-col items-center gap-3">

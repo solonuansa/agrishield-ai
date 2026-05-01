@@ -2,8 +2,10 @@
 
 import logging
 
-from fastapi import FastAPI
+from botocore.exceptions import BotoCoreError, ClientError
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api import api_router
 from app.core.config import settings
@@ -34,6 +36,20 @@ app.add_middleware(
 
 # Daftarkan semua router dengan prefix /api
 app.include_router(api_router, prefix="/api")
+
+
+@app.exception_handler(BotoCoreError)
+@app.exception_handler(ClientError)
+async def storage_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Tangkap error boto3 (R2/S3) dan kembalikan response yang informatif."""
+    logger.error(f"Storage error pada {request.url.path}: {exc}")
+    return JSONResponse(
+        status_code=502,
+        content={
+            "success": False,
+            "detail": "Layanan penyimpanan gambar tidak tersedia sementara. Silakan coba lagi.",
+        },
+    )
 
 
 @app.on_event("startup")

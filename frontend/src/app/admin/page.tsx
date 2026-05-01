@@ -4,20 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { apiGet } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
-
-type AdminStats = {
-  total_scans: number;
-  total_users: number;
-  disease_detected: number;
-  healthy_detected: number;
-  active_alerts: number;
-  by_province: Array<{
-    province: string;
-    total_scans: number;
-    disease_count: number;
-    top_disease: string | null;
-  }>;
-};
+import type { AdminStats } from "@/types/api";
 
 function AdminContent() {
   const token = getAccessToken();

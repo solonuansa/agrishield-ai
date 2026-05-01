@@ -99,26 +99,30 @@ Field utama dari backend:
 
 ## 5. Gap Utama Saat Ini
 
-1. Konsistensi deployment frontend production belum final.
-2. CI frontend/backend masih perlu sinkron penuh dengan script aktual.
+1. ~~Konsistensi deployment frontend production belum final.~~ ✅ Selesai (static export + multi-stage Dockerfile)
+2. ~~CI frontend/backend masih perlu sinkron penuh dengan script aktual.~~ ✅ Selesai (type-check, test, build, Docker validation)
 3. Cakupan test masih dasar untuk flow kompleks async.
 4. Beberapa keputusan produk masih placeholder (mis. strategi fallback confidence rendah model).
 
 ## 6. Rencana Eksekusi Teknis Berikutnya
 
-### Tahap 1 - Integrasi dan Konsistensi
+### Tahap 1 - Integrasi dan Konsistensi ✅ Selesai (Sprint A)
 
-- Finalisasi kontrak API lintas frontend-backend
-- Rapikan pipeline CI agar fail-fast dan reproducible
-- Samakan dokumentasi dev/prod command dengan script aktual
+- ~~Finalisasi kontrak API lintas frontend-backend~~ ✅ Central types di `frontend/src/types/api.ts`
+- ~~Rapikan pipeline CI agar fail-fast dan reproducible~~ ✅ Node 22, type-check, test, build, Docker validation
+- ~~Samakan dokumentasi dev/prod command dengan script aktual~~ ✅ Dockerfile frontend production-ready
+- ~~Perbaiki auth flow scan (guest vs authenticated)~~ ✅ Frontend sekarang memakai `/scans/auth` saat login
+- ~~Implementasikan refresh token interceptor~~ ✅ Otomatis refresh saat access token expired
+- ~~Perbaiki server-side fetch tanpa auth~~ ✅ Semua SSR page di-refactor ke Client Component
 
-### Tahap 2 - Reliability
+### Tahap 2 - Reliability (Sprint B — Berikutnya)
 
 - Tambah integration test async scan + worker
-- Tambah validasi upload size/mime secara ketat
+- ~~Tambah validasi upload size/mime/dimensi secara ketat~~ ✅ Selesai di backend
 - Monitoring error rate dan retry behavior Celery
+- Tuning deteksi klaster wabah dan parameter severity
 
-### Tahap 3 - Feature Hardening
+### Tahap 3 - Feature Hardening (Sprint C)
 
 - Perbaiki kualitas alert clustering
 - Tingkatkan UX map/community/dashboard

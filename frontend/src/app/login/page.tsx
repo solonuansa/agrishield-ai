@@ -5,20 +5,9 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { apiPost, ApiError } from "@/lib/api";
 import { writeSession } from "@/lib/auth";
+import type { TokenResponse } from "@/types/api";
 
 type AuthMode = "login" | "register";
-
-type TokenResponse = {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  user: {
-    id: string;
-    email: string;
-    full_name: string;
-    role: string;
-  };
-};
 
 function getSearchParam(name: string): string | null {
   if (typeof window === "undefined") return null;

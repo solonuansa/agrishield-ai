@@ -1,4 +1,6 @@
-﻿export type ApiSuccess<T> = {
+﻿import { clearSession, getAccessToken, readSession } from "@/lib/auth";
+
+export type ApiSuccess<T> = {
   success: boolean;
   data: T;
   meta?: Record<string, unknown> | null;
@@ -18,6 +20,52 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, "") ||
   "http://localhost:8000/api";
 
+let isRefreshing = false;
+let refreshQueue: Array<(token: string | null) => void> = [];
+
+async function processRefreshQueue(token: string | null) {
+  refreshQueue.forEach((callback) => callback(token));
+  refreshQueue = [];
+}
+
+async function refreshAccessToken(): Promise<string | null> {
+  const session = readSession();
+  if (!session?.refreshToken) return null;
+
+  try {
+    const response = await fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: session.refreshToken }),
+    });
+
+    if (!response.ok) {
+      clearSession();
+      return null;
+    }
+
+    const payload = (await response.json()) as ApiSuccess<{
+      access_token: string;
+      refresh_token?: string;
+    }>;
+
+    const newToken = payload.data.access_token;
+    const newRefreshToken = payload.data.refresh_token || session.refreshToken;
+
+    // Update session in localStorage
+    if (typeof window !== "undefined") {
+      const updated = { ...session, token: newToken, refreshToken: newRefreshToken };
+      window.localStorage.setItem("agrishield.session", JSON.stringify(updated));
+      window.localStorage.setItem("token", newToken);
+    }
+
+    return newToken;
+  } catch {
+    clearSession();
+    return null;
+  }
+}
+
 async function parseErrorMessage(response: Response): Promise<string> {
   try {
     const data = (await response.json()) as { detail?: string; message?: string };
@@ -27,15 +75,44 @@ async function parseErrorMessage(response: Response): Promise<string> {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, retry = true): Promise<T> {
+  const token = getAccessToken();
+
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      ...(init?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers || {}),
     },
     cache: "no-store",
   });
+
+  if (response.status === 401 && retry) {
+    if (isRefreshing) {
+      // Queue this request until refresh completes
+      return new Promise((resolve, reject) => {
+        refreshQueue.push((newToken) => {
+          if (newToken) {
+            resolve(request<T>(path, init, false));
+          } else {
+            reject(new ApiError("Sesi telah berakhir. Silakan masuk kembali.", 401));
+          }
+        });
+      });
+    }
+
+    isRefreshing = true;
+    const newToken = await refreshAccessToken();
+    isRefreshing = false;
+    await processRefreshQueue(newToken);
+
+    if (newToken) {
+      return request<T>(path, init, false);
+    }
+
+    throw new ApiError("Sesi telah berakhir. Silakan masuk kembali.", 401);
+  }
 
   if (!response.ok) {
     const message = await parseErrorMessage(response);
@@ -82,21 +159,11 @@ export async function apiPostForm<T>(
   formData: FormData,
   token?: string | null
 ): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  return request<T>(path, {
     method: "POST",
     body: formData,
     headers: {
       ...getAuthHeaders(token),
     },
-    cache: "no-store",
   });
-
-  if (!response.ok) {
-    const message = await parseErrorMessage(response);
-    throw new ApiError(message, response.status);
-  }
-
-  const payload = (await response.json()) as ApiSuccess<T>;
-  return payload.data;
 }
-

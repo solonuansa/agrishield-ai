@@ -18,6 +18,13 @@ logger = logging.getLogger(__name__)
 
 _r2_client = None
 
+# Mapping content_type ke ekstensi yang aman
+_CONTENT_TYPE_TO_EXT = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+}
+
 
 def _get_client():
     """Lazy-init boto3 client untuk R2 (singleton)."""
@@ -33,21 +40,20 @@ def _get_client():
     return _r2_client
 
 
-def _build_key(scan_id: uuid.UUID, original_filename: str) -> str:
+def _build_key(scan_id: uuid.UUID, content_type: str) -> str:
     """Buat path object di R2: scans/{year}/{month}/{scan_id}.{ext}"""
     now = datetime.now(timezone.utc)
-    ext = original_filename.rsplit(".", 1)[-1].lower() if "." in original_filename else "jpg"
+    ext = _CONTENT_TYPE_TO_EXT.get(content_type, "jpg")
     return f"scans/{now.year}/{now.month:02d}/{scan_id}.{ext}"
 
 
-async def upload_scan_image(file: UploadFile, scan_id: uuid.UUID) -> str:
+async def upload_scan_image(file: UploadFile, scan_id: uuid.UUID, content: bytes) -> str:
     """
     Upload gambar scan ke Cloudflare R2.
     Return: object key (path relatif di bucket)
     """
-    key = _build_key(scan_id, file.filename or "image.jpg")
-    content = await file.read()
     content_type = file.content_type or "image/jpeg"
+    key = _build_key(scan_id, content_type)
 
     try:
         client = _get_client()

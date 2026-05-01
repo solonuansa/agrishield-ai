@@ -6,68 +6,65 @@ import { Camera, Brain, ClipboardCheck } from "lucide-react";
 const steps = [
   {
     icon: Camera,
-    title: "Foto Daun",
-    desc: "Ambil gambar daun tanaman yang menunjukkan gejala sakit menggunakan kamera smartphone Anda.",
+    title: "Ambil Foto",
+    desc: "Foto daun yang menunjukkan gejala menggunakan ponsel.",
   },
   {
     icon: Brain,
     title: "Analisis AI",
-    desc: "Sistem AgriShield membaca gejala dari foto dan menampilkan hasil diagnosis dalam hitungan detik.",
+    desc: "Model membaca pola visual dan menampilkan diagnosis.",
   },
   {
     icon: ClipboardCheck,
-    title: "Tangani",
-    desc: "Dapatkan rekomendasi penanganan yang tepat dan terukur untuk menyelamatkan tanaman Anda.",
+    title: "Tindak Lanjut",
+    desc: "Dapatkan rekomendasi spesifik dan estimasi biaya.",
   },
 ];
 
-function StepCard({ step, index }: { step: (typeof steps)[number]; index: number }) {
-  const Icon = step.icon;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 26 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-120px" }}
-      transition={{ duration: 0.55, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <div className="flex items-start gap-5">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-forest-700 text-cream">
-          <Icon className="h-5 w-5" strokeWidth={1.5} />
-        </div>
-        <div>
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">
-            Langkah {String(index + 1).padStart(2, "0")}
-          </span>
-          <h3 className="font-serif text-xl font-medium text-forest-700 mt-1 mb-2">{step.title}</h3>
-          <p className="max-w-xs text-base leading-relaxed text-ink-muted">{step.desc}</p>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function HowItWorksSection() {
   return (
-    <section className="bg-cream-dark fluid-py">
-      <div className="mx-auto max-w-6xl px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
-          <div className="lg:col-span-4">
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-clay">Cara Kerja</p>
-            <h2 className="font-serif text-4xl sm:text-5xl font-semibold text-forest-700 leading-[1.05]">
-              Semudah
-              <br />
-              <span className="italic">tiga langkah</span>.
-            </h2>
-          </div>
-          <div className="lg:col-span-8 space-y-10">
-            {steps.map((step, index) => (
-              <StepCard key={step.title} step={step} index={index} />
-            ))}
-          </div>
+    <section id="fitur" className="bg-cream-dark">
+      <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20 lg:px-8">
+        {/* Header */}
+        <div className="mb-12 text-center">
+          <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-clay">Cara Kerja</p>
+          <h2 className="font-serif text-2xl font-semibold text-forest-700 sm:text-3xl">
+            Tiga langkah <span className="italic">sederhana</span>
+          </h2>
+        </div>
+
+        {/* Steps */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <motion.div
+                key={step.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                className="group relative rounded-lg border border-cream-darker bg-cream p-6 transition-colors hover:border-cream-darker/80"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cream-darker bg-cream-dark text-forest-700">
+                    <Icon className="h-4 w-4" strokeWidth={1.5} />
+                  </div>
+                  <span className="text-[0.6rem] font-bold uppercase tracking-[0.15em] text-clay">
+                    Langkah {index + 1}
+                  </span>
+                </div>
+                <h3 className="mt-4 font-serif text-lg font-semibold text-forest-700">
+                  {step.title}
+                </h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
+                  {step.desc}
+                </p>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
-

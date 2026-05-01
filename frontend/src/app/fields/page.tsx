@@ -4,16 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { apiGet } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
-
-type Field = {
-  id: string;
-  name: string;
-  location_name: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  area_hectares: number | null;
-  crop_type: "rice" | "corn" | null;
-};
+import type { FieldResponse as Field } from "@/types/api";
 
 function cropLabel(value: Field["crop_type"]) {
   if (value === "rice") return "Padi";

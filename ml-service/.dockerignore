@@ -1,0 +1,15 @@
+# ML Service dockerignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+.pytest_cache
+.env
+.env.local
+.venv
+venv
+*.log
+Dockerfile
+docker-compose*.yml

@@ -1,0 +1,14 @@
+# Frontend dockerignore
+node_modules
+.next
+out
+dist
+*.log
+.env
+.env.local
+.env.*.local
+.vscode
+.idea
+*.md
+Dockerfile
+docker-compose*.yml

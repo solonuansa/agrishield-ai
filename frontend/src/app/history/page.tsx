@@ -5,16 +5,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { apiGet } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
 import { formatDateID } from "@/lib/ui";
-
-type ScanResponse = {
-  id: string;
-  crop_type: "rice" | "corn";
-  created_at: string;
-  result: {
-    detected_disease: string;
-    confidence: number;
-  } | null;
-};
+import type { ScanResponse } from "@/types/api";
 
 function cropLabel(value: "rice" | "corn") {
   return value === "rice" ? "Padi" : "Jagung";
