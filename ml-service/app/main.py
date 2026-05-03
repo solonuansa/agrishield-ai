@@ -28,6 +28,8 @@ async def health():
         "service": "agrishield-ml",
         "mock_mode": settings.use_mock_model,
         "model_version": settings.model_version,
+        "rice_model": settings.rice_model_path,
+        "corn_model": settings.corn_model_path,
     }
 
 
@@ -63,5 +65,9 @@ async def predict(
 
 @app.on_event("startup")
 async def on_startup():
-    mode = "MOCK" if settings.use_mock_model else f"ONNX ({settings.model_path})"
-    logger.info(f"ML Service started — mode: {mode}")
+    if settings.use_mock_model:
+        logger.info("ML Service started — mode: MOCK")
+    else:
+        logger.info("ML Service started — mode: ONNX")
+        logger.info(f"  Rice model: {settings.rice_model_path}")
+        logger.info(f"  Corn model: {settings.corn_model_path}")

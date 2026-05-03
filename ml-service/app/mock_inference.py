@@ -6,7 +6,7 @@ Mensimulasikan latency realistis dan mengembalikan prediksi yang masuk akal.
 import asyncio
 import random
 
-from app.config import CLASS_NAMES, CROP_TYPE_MAP, settings
+from app.config import CLASS_NAMES_CORN, CLASS_NAMES_RICE, settings
 from app.schemas import AlternativeDiagnosis, PredictionResponse
 
 
@@ -19,27 +19,27 @@ async def mock_predict(crop_type: str) -> PredictionResponse:
     # Simulasi latency inferensi: 0.5 – 2 detik
     await asyncio.sleep(random.uniform(0.5, 2.0))
 
-    valid_indices = CROP_TYPE_MAP.get(crop_type, list(range(len(CLASS_NAMES))))
+    class_names = CLASS_NAMES_RICE if crop_type == "rice" else CLASS_NAMES_CORN
 
     # Buat distribusi probabilitas acak untuk kelas yang valid
-    raw_scores = [random.random() for _ in valid_indices]
+    raw_scores = [random.random() for _ in class_names]
     total = sum(raw_scores)
     probabilities = [s / total for s in raw_scores]
 
     # Urutkan dari confidence tertinggi
     ranked = sorted(
-        zip(valid_indices, probabilities),
+        zip(range(len(class_names)), probabilities),
         key=lambda x: x[1],
         reverse=True,
     )
 
     top_idx, top_conf = ranked[0]
-    top_disease = CLASS_NAMES[top_idx]
+    top_disease = class_names[top_idx]
 
     # Alternatif diagnosis (maksimal 2)
     alternatives = [
         AlternativeDiagnosis(
-            disease=CLASS_NAMES[idx],
+            disease=class_names[idx],
             confidence=round(conf, 4),
         )
         for idx, conf in ranked[1:3]

@@ -8,7 +8,10 @@ class Settings(BaseSettings):
 
     use_mock_model: bool = True
     model_version: str = "v1"
-    model_path: str = "app/models/agridisease_v1.onnx"
+
+    # Dua model terpisah: padi & jagung
+    rice_model_path: str = "app/models/rice_disease_v1.onnx"
+    corn_model_path: str = "app/models/corn_disease_v1.onnx"
 
     # Confidence threshold — di bawah ini dianggap "tidak terdeteksi"
     confidence_threshold: float = 0.40
@@ -16,21 +19,27 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Nama kelas — urutan HARUS konsisten dengan training
-# Source of truth: class_names.json
-CLASS_NAMES = [
+# ── Kelas Padi (5 kelas) ─────────────────────────────────────
+# Urutan HARUS konsisten dengan training model padi
+CLASS_NAMES_RICE = [
     "rice_leaf_blast",             # 0
     "rice_bacterial_leaf_blight",  # 1
     "rice_brown_spot",             # 2
     "rice_hispa",                  # 3
     "rice_healthy",                # 4
-    "corn_northern_leaf_blight",   # 5
-    "corn_common_rust",            # 6
-    "corn_gray_leaf_spot",         # 7
-    "corn_healthy",                # 8
 ]
 
+# ── Kelas Jagung (4 kelas) ───────────────────────────────────
+# Urutan HARUS konsisten dengan training model jagung
+CLASS_NAMES_CORN = [
+    "corn_northern_leaf_blight",   # 0
+    "corn_common_rust",            # 1
+    "corn_gray_leaf_spot",         # 2
+    "corn_healthy",                # 3
+]
+
+# Helper mapping untuk memilih class names berdasarkan crop_type
 CROP_TYPE_MAP = {
-    "rice": [0, 1, 2, 3, 4],
-    "corn": [5, 6, 7, 8],
+    "rice": CLASS_NAMES_RICE,
+    "corn": CLASS_NAMES_CORN,
 }
