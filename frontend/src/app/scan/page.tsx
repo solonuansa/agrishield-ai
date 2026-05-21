@@ -1,11 +1,20 @@
 ﻿"use client";
 
-import { ChangeEvent, DragEvent, useRef, useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Camera, UploadCloud } from "lucide-react";
+import { ArrowLeft, MapPin, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { apiGet, apiPostForm, ApiError } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
 import type { ScanResponse } from "@/types/api";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FileUpload } from "@/components/ui/FileUpload";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { useToast } from "@/lib/hooks/useToast";
+import { fadeUp, staggerContainer, staggerItem } from "@/lib/motion";
 
 type CropType = "rice" | "corn";
 
@@ -13,40 +22,73 @@ function cropLabel(value: CropType) {
   return value === "rice" ? "Padi" : "Jagung";
 }
 
+function cropEmoji(value: CropType) {
+  return value === "rice" ? "🌾" : "🌽";
+}
+
+const statusVariantMap: Record<string, "default" | "success" | "warning" | "danger" | "info"> = {
+  completed: "success",
+  processing: "warning",
+  failed: "danger",
+  pending: "info",
+};
+
+const statusLabelMap: Record<string, string> = {
+  completed: "Selesai",
+  processing: "Memproses",
+  failed: "Gagal",
+  pending: "Menunggu",
+};
+
+const PROCESSING_STEPS = [
+  "Menganalisis gambar...",
+  "Mendeteksi penyakit...",
+  "Menyusun rekomendasi...",
+];
+
+const PHOTO_TIPS = [
+  { icon: "☀️", text: "Pastikan pencahayaan cukup terang." },
+  { icon: "🔍", text: "Fokuskan kamera pada gejala di daun." },
+  { icon: "📏", text: "Jarak ideal 10-30 cm dari objek." },
+  { icon: "🚫", text: "Hindari bayangan yang menutup area gejala." },
+];
+
 export default function ScanPage() {
-  const [dragOver, setDragOver] = useState(false);
   const [cropType, setCropType] = useState<CropType>("rice");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [scanData, setScanData] = useState<ScanResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [locationText, setLocationText] = useState("Lokasi belum dipilih");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [coords, setCoords] = useState<{ latitude?: number; longitude?: number }>({});
+  const toast = useToast();
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleFile = useCallback(
+    (file: File) => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(URL.createObjectURL(file));
+      setSelectedFile(file);
+      setErrorMessage("");
+    },
+    [previewUrl]
+  );
 
-  const updateFile = (file?: File | null) => {
-    if (!file) return;
-    setSelectedFile(file);
-    setErrorMessage("");
-  };
+  const handleClear = useCallback(() => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setSelectedFile(null);
+  }, [previewUrl]);
 
-  const handleFileInput = (event: ChangeEvent<HTMLInputElement>) => {
-    updateFile(event.target.files?.[0]);
-  };
-
-  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setDragOver(false);
-    updateFile(event.dataTransfer.files?.[0]);
-  };
-
-  const detectLocation = () => {
+  const detectLocation = useCallback(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setLocationText("Browser tidak mendukung geolocation");
+      toast.warning("Browser tidak mendukung geolokasi");
       return;
     }
 
+    setIsLocating(true);
     setLocationText("Mendeteksi lokasi...");
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -54,17 +96,23 @@ export default function ScanPage() {
         const longitude = Number(position.coords.longitude.toFixed(6));
         setCoords({ latitude, longitude });
         setLocationText(`Lokasi tersimpan: ${latitude}, ${longitude}`);
+        setIsLocating(false);
+        toast.success("Lokasi berhasil terdeteksi");
       },
       () => {
         setLocationText("Izin lokasi ditolak");
+        setIsLocating(false);
+        toast.error("Izin lokasi ditolak. Periksa pengaturan browser Anda.");
       },
       { enableHighAccuracy: true, timeout: 7000 }
     );
-  };
+  }, [toast]);
 
-  const runScan = async () => {
+  const runScan = useCallback(async () => {
     if (!selectedFile) {
-      setErrorMessage("Pilih foto daun terlebih dahulu.");
+      const msg = "Pilih foto daun terlebih dahulu.";
+      setErrorMessage(msg);
+      toast.warning(msg);
       return;
     }
 
@@ -78,7 +126,6 @@ export default function ScanPage() {
     if (coords.latitude !== undefined) {
       formData.append("latitude", String(coords.latitude));
     }
-
     if (coords.longitude !== undefined) {
       formData.append("longitude", String(coords.longitude));
     }
@@ -88,159 +135,300 @@ export default function ScanPage() {
       const endpoint = token ? "/scans/auth" : "/scans";
       const data = await apiPostForm<ScanResponse>(endpoint, formData, token);
       setScanData(data);
+      toast.success("Analisis berhasil dimulai!");
     } catch (error) {
       if (error instanceof ApiError) {
         setErrorMessage(error.message);
+        toast.error(error.message);
       } else {
-        setErrorMessage("Gagal menjalankan analisis. Coba lagi.");
+        const msg = "Gagal menjalankan analisis. Coba lagi.";
+        setErrorMessage(msg);
+        toast.error(msg);
       }
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [selectedFile, cropType, coords, toast]);
 
-  const refreshStatus = async () => {
+  const refreshStatus = useCallback(async () => {
     if (!scanData?.id) return;
 
     setIsSubmitting(true);
     try {
       const latest = await apiGet<ScanResponse>(`/scans/${scanData.id}`);
       setScanData(latest);
+      if (latest.status === "completed") {
+        toast.success("Hasil scan telah siap!");
+      } else if (latest.status === "failed") {
+        toast.error("Scan gagal diproses.");
+      }
     } catch (error) {
       if (error instanceof ApiError) {
-        setErrorMessage(error.message);
+        toast.error(error.message);
       } else {
-        setErrorMessage("Gagal memuat status scan.");
+        toast.error("Gagal memuat status scan.");
       }
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [scanData, toast]);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
-      <Link href="/" className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-ink-muted transition-colors hover:text-forest-700">
+      <Link
+        href="/"
+        className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-ink-muted transition-colors hover:text-forest-700"
+      >
         <ArrowLeft className="h-4 w-4" />
         Kembali
       </Link>
 
-      <div className="mb-10 space-y-3">
-        <p className="section-kicker">Scan</p>
-        <h1 className="page-title">Deteksi penyakit dalam hitungan detik.</h1>
-      </div>
+      <PageHeader
+        title="Scan Deteksi"
+        description="Unggah foto daun dan dapatkan diagnosis instan"
+      />
 
-      <div
-        className={`rounded border-2 border-dashed px-6 py-12 text-center transition-colors ${
-          dragOver ? "border-forest-600 bg-forest-50" : "border-cream-darker bg-cream-dark"
-        }`}
-        onDragOver={(event) => {
-          event.preventDefault();
-          setDragOver(true);
-        }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
-      >
-        <UploadCloud className="mx-auto h-8 w-8 text-forest-700" />
-        <p className="mt-3 font-serif text-2xl text-forest-700">Tarik foto daun ke area ini</p>
-        <p className="mt-1 text-sm text-ink-muted">atau pilih file dari perangkat</p>
+      <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-8">
+        <FileUpload
+          onFile={handleFile}
+          accept="image/jpeg,image/png,image/webp"
+          preview={previewUrl}
+          onClear={handleClear}
+          disabled={isSubmitting}
+          error={errorMessage}
+        />
+      </motion.div>
 
-        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileInput} />
-
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <button type="button" className="btn-primary" onClick={() => fileInputRef.current?.click()}>
-            Pilih File
-          </button>
-          <button type="button" className="btn-secondary inline-flex items-center gap-2" onClick={detectLocation}>
-            <Camera className="h-4 w-4" />
-            Gunakan Lokasi
-          </button>
-        </div>
-
-        <p className="mt-4 text-xs text-ink-muted">JPG/PNG/WebP, maksimal 10 MB</p>
-        <p className="mt-2 text-sm text-ink-soft">{selectedFile ? `File: ${selectedFile.name}` : "Belum ada file dipilih"}</p>
-        <p className="mt-1 text-xs text-ink-muted">{locationText}</p>
-      </div>
-
-      <div className="mt-8">
-        <label className="field-label">Jenis Tanaman</label>
-        <div className="mt-3 grid grid-cols-2 gap-3">
+      <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-8">
+        <label className="mb-3 block text-sm font-semibold text-ink">Jenis Tanaman</label>
+        <div className="grid grid-cols-2 gap-4">
           {(["rice", "corn"] as const).map((crop) => (
-            <button
+            <motion.button
               key={crop}
               type="button"
               onClick={() => setCropType(crop)}
-              className={
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 p-5 transition-colors ${
                 crop === cropType
-                  ? "rounded border border-forest-600 bg-forest-50 px-4 py-3 text-sm font-semibold text-forest-700"
-                  : "rounded border border-cream-darker px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:border-ink-muted hover:text-ink"
-              }
+                  ? "border-forest-500 bg-forest-50 shadow-sm"
+                  : "border-cream-300 bg-white/60 hover:border-cream-400"
+              }`}
             >
-              {cropLabel(crop)}
-            </button>
+              <span className="text-3xl">{cropEmoji(crop)}</span>
+              <span
+                className={`text-sm font-semibold ${
+                  crop === cropType ? "text-forest-700" : "text-ink-muted"
+                }`}
+              >
+                {cropLabel(crop)}
+              </span>
+            </motion.button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-      {errorMessage && (
-        <p className="mt-6 rounded border border-clay/30 bg-clay/10 px-3 py-2 text-sm text-clay-dark">{errorMessage}</p>
-      )}
-
-      <button
-        type="button"
-        onClick={runScan}
-        disabled={isSubmitting}
-        className="btn-primary mt-8 w-full disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {isSubmitting ? "Memproses..." : "Mulai Analisis"}
-      </button>
-
-      {scanData && (
-        <div className="mt-8 rounded border border-cream-darker bg-cream-dark/50 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cream-darker/60 pb-3">
-            <p className="text-sm font-semibold text-ink-soft">Scan #{scanData.id.slice(0, 8)}</p>
-            <span className="rounded bg-forest-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-forest-700">
-              {scanData.status}
-            </span>
+      <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-6">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Button
+              variant="secondary"
+              size="md"
+              icon={MapPin}
+              onClick={detectLocation}
+              disabled={isSubmitting || isLocating}
+            >
+              {isLocating ? "Mendeteksi..." : "Gunakan Lokasi"}
+            </Button>
+            {isLocating && (
+              <motion.span
+                className="absolute inset-0 rounded-sm border-2 border-forest-400"
+                animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: "easeOut" }}
+              />
+            )}
           </div>
-
-          {scanData.result ? (
-            <div className="mt-4 space-y-3">
-              <p className="font-serif text-2xl text-forest-700">{scanData.result.detected_disease}</p>
-              <p className="text-sm text-ink-muted">
-                Keyakinan model: {Math.round(scanData.result.confidence * 100)}%
-              </p>
-              <p className="text-sm leading-relaxed text-ink-soft">
-                {scanData.result.recommendation || "Rekomendasi belum tersedia."}
-              </p>
-            </div>
-          ) : (
-            <div className="mt-4 space-y-3">
-              <p className="text-sm text-ink-muted">
-                Hasil belum siap. Klik tombol di bawah untuk cek status terbaru.
-              </p>
-              <button
-                type="button"
-                onClick={refreshStatus}
-                disabled={isSubmitting}
-                className="btn-secondary disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Cek Status
-              </button>
-            </div>
-          )}
+          <span className="text-sm text-ink-muted">{locationText}</span>
         </div>
-      )}
+      </motion.div>
 
-      <div className="mt-10 border-t border-cream-darker/40 pt-8">
-        <h3 className="field-label">Tips Pengambilan Foto</h3>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-ink-muted">
-          <li>Pastikan pencahayaan cukup terang.</li>
-          <li>Fokuskan kamera pada gejala di daun.</li>
-          <li>Jarak ideal 10-30 cm dari objek.</li>
-          <li>Hindari bayangan yang menutup area gejala.</li>
-        </ul>
-      </div>
+      <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-10">
+        <Button
+          variant="primary"
+          size="lg"
+          loading={isSubmitting}
+          onClick={runScan}
+          disabled={!selectedFile || isSubmitting}
+          className="w-full"
+        >
+          Mulai Analisis
+        </Button>
+      </motion.div>
+
+      <AnimatePresence>
+        {isSubmitting && !scanData && (
+          <motion.div
+            key="processing"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.3 }}
+            className="mb-10"
+          >
+            <Card variant="default" className="p-6">
+              <div className="space-y-4">
+                {PROCESSING_STEPS.map((step, i) => (
+                  <motion.div
+                    key={step}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + i * 0.3 }}
+                    className="flex items-center gap-3"
+                  >
+                    <Loader2 className="h-4 w-4 shrink-0 animate-spin text-forest-500" />
+                    <span className="text-sm text-ink-soft">{step}</span>
+                  </motion.div>
+                ))}
+              </div>
+              <div className="mt-6 space-y-3">
+                <Skeleton variant="heading" width="50%" />
+                <Skeleton variant="text" width="80%" />
+                <Skeleton variant="text" width="60%" />
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {scanData && (
+          <motion.div
+            key="result"
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            exit={{ opacity: 0, y: 12 }}
+            className="mb-10"
+          >
+            <Card variant="default" className="overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cream-200 bg-cream-50/50 px-6 py-3">
+                <p className="text-sm font-semibold text-ink-soft">
+                  Scan #{scanData.id.slice(0, 8)}
+                </p>
+                <Badge variant={statusVariantMap[scanData.status] || "default"}>
+                  {statusLabelMap[scanData.status] || scanData.status}
+                </Badge>
+              </div>
+
+              <div className="p-6">
+                {scanData.result ? (
+                  <motion.div
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-5"
+                  >
+                    <motion.div variants={staggerItem}>
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                        Penyakit Terdeteksi
+                      </p>
+                      <p className="text-display text-forest-700">
+                        {scanData.result.detected_disease}
+                      </p>
+                    </motion.div>
+
+                    <motion.div variants={staggerItem}>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                        Tingkat Keyakinan
+                      </p>
+                      <div className="flex items-center gap-4">
+                        <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-cream-200">
+                          <motion.div
+                            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-forest-500 to-forest-700"
+                            initial={{ width: 0 }}
+                            animate={{
+                              width: `${Math.round(scanData.result.confidence * 100)}%`,
+                            }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                          />
+                        </div>
+                        <span className="w-10 text-right text-sm font-bold text-forest-700">
+                          {Math.round(scanData.result.confidence * 100)}%
+                        </span>
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={staggerItem}>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                        Rekomendasi
+                      </p>
+                      <Card variant="flat" className="border-forest-200 bg-forest-50/40 p-4">
+                        <p className="text-sm leading-relaxed text-ink-soft">
+                          {scanData.result.recommendation || "Rekomendasi belum tersedia."}
+                        </p>
+                      </Card>
+                    </motion.div>
+
+                    {scanData.result.is_mock && (
+                      <motion.p
+                        variants={staggerItem}
+                        className="flex items-center gap-2 text-xs text-ink-muted"
+                      >
+                        <ShieldCheck className="h-3.5 w-3.5" />
+                        Hasil simulasi berdasarkan model ({scanData.result.model_version})
+                      </motion.p>
+                    )}
+                  </motion.div>
+                ) : (
+                  <div className="py-6 text-center">
+                    <p className="mb-4 text-sm text-ink-muted">
+                      Hasil belum siap. Klik tombol di bawah untuk cek status terbaru.
+                    </p>
+                    <Button
+                      variant="secondary"
+                      icon={RefreshCw}
+                      onClick={refreshStatus}
+                      loading={isSubmitting}
+                    >
+                      Cek Status
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+        className="border-t border-cream-200 pt-8"
+      >
+        <Card variant="flat" className="p-6">
+          <h3 className="mb-4 text-sm font-semibold text-forest-700">
+            Tips Pengambilan Foto
+          </h3>
+          <motion.ul
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            className="space-y-3"
+          >
+            {PHOTO_TIPS.map((tip, i) => (
+              <motion.li
+                key={i}
+                variants={staggerItem}
+                className="flex items-start gap-3 text-sm text-ink-muted"
+              >
+                <span className="shrink-0 text-base">{tip.icon}</span>
+                <span>{tip.text}</span>
+              </motion.li>
+            ))}
+          </motion.ul>
+        </Card>
+      </motion.div>
     </div>
   );
 }
-

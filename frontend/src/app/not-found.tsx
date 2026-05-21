@@ -1,25 +1,37 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Sprout } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function NotFound() {
+  const router = useRouter();
+
   return (
     <div className="flex flex-1 items-center justify-center px-6 py-24">
-      <div className="text-center max-w-sm">
-        <p className="font-serif text-7xl font-semibold text-forest-700 mb-4">404</p>
-        <h1 className="font-serif text-2xl text-forest-700 mb-3">
-          Halaman tidak ditemukan
-        </h1>
-        <p className="text-sm text-ink-muted mb-8">
-          Maaf, halaman yang Anda cari tidak tersedia.
-        </p>
-        <Link
-          href="/"
-          className="inline-block bg-forest-700 hover:bg-forest-800 text-cream px-6 py-2.5 text-sm font-medium transition-colors"
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
+        className="text-center"
+      >
+        <motion.p
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.45, delay: 0.1, ease: [0.25, 1, 0.5, 1] }}
+          className="font-serif text-7xl font-semibold text-forest-700 mb-4"
         >
-          Kembali ke Beranda
-        </Link>
-      </div>
+          404
+        </motion.p>
+        <EmptyState
+          icon={<Sprout size={36} strokeWidth={1.5} />}
+          title="Halaman tidak ditemukan"
+          description="Maaf, halaman yang Anda cari tidak tersedia."
+          actionLabel="Kembali ke Beranda"
+          onAction={() => router.push("/")}
+        />
+      </motion.div>
     </div>
   );
 }

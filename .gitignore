@@ -55,3 +55,7 @@ ml-training/
 *.bak
 *.orig
 .cache/
+
+# --- Superpowers / Brainstorm ---
+.superpowers/
+docs/superpowers/
