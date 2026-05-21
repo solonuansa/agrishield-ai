@@ -34,7 +34,7 @@ export default function CTASection() {
             sekarang.
           </h2>
           <div className="editorial-line mx-auto mt-6 mb-5" />
-          <p className="mx-auto max-w-lg text-lg leading-relaxed text-cream/70">
+          <p className="mx-auto max-w-lg text-lg leading-relaxed text-cream/85">
             Tidak perlu kartu kredit. Gratis selamanya untuk petani. Daftar
             dalam hitungan menit dan langsung mulai scan.
           </p>
@@ -59,7 +59,7 @@ export default function CTASection() {
           </Link>
           <Link
             href="/scan"
-            className="inline-flex items-center justify-center rounded-full border border-cream/20 px-8 py-3 text-base font-medium tracking-wide text-cream/75 transition-all hover:-translate-y-0.5 hover:border-cream/40 hover:text-cream"
+            className="inline-flex items-center justify-center rounded-full border border-cream/20 px-8 py-3 text-base font-medium tracking-wide text-cream/85 transition-all hover:-translate-y-0.5 hover:border-cream/40 hover:text-cream"
           >
             Coba Tanpa Daftar
           </Link>

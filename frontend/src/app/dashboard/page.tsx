@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { StatCard } from "@/components/ui/StatCard";
 import { apiGet } from "@/lib/api";
 import { getAccessToken, readSession } from "@/lib/auth";
+import { useToast } from "@/lib/hooks/useToast";
 import { staggerContainer, staggerItem } from "@/lib/motion";
 import { formatDateID } from "@/lib/ui";
 import type { DashboardStats, ScanResponse } from "@/types/api";
@@ -64,6 +65,7 @@ function DashboardContent() {
   const token = getAccessToken();
   const router = useRouter();
   const session = readSession();
+  const toast = useToast();
   const userName = session?.user?.full_name
     ? firstName(session.user.full_name)
     : "Petani";
@@ -84,12 +86,24 @@ function DashboardContent() {
   const stats = statsQuery.data;
   const scans = scansQuery.data ?? [];
 
+  useEffect(() => {
+    if (scansQuery.isError) {
+      toast.error("Gagal memuat riwayat scan.");
+    }
+  }, [scansQuery.isError]);
+
+  useEffect(() => {
+    if (statsQuery.isError) {
+      toast.error("Gagal memuat statistik dashboard.");
+    }
+  }, [statsQuery.isError]);
+
   const isEmpty = stats && stats.total_scans === 0;
   const statsLoading = statsQuery.isLoading;
   const scansLoading = scansQuery.isLoading;
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+    <div className="mx-auto max-w-5xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <PageHeader
         title="Dashboard"
         description={`${greeting}, ${userName}`}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useRef, useState, type DragEvent, type ChangeEvent } from "react";
+import { useCallback, useRef, useState, type DragEvent, type ChangeEvent, type KeyboardEvent } from "react";
+import Image from "next/image";
 import { Upload, Image as ImageIcon, X, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -93,11 +94,15 @@ export function FileUpload({
             exit={{ opacity: 0, scale: 0.98 }}
             className="relative group rounded-lg overflow-hidden border border-cream-300"
           >
-            <img
-              src={preview}
-              alt="Preview"
-              className="w-full max-h-80 object-contain bg-cream-100/50"
-            />
+            <div className="relative aspect-[4/3] w-full">
+              <Image
+                src={preview}
+                alt="Preview"
+                fill
+                className="object-contain bg-cream-100/50"
+                sizes="(max-width: 768px) 100vw, 600px"
+              />
+            </div>
             <button
               onClick={handleClear}
               className="absolute top-2 right-2 p-1.5 rounded-full bg-ink/50 text-white hover:bg-ink/70 transition-colors opacity-0 group-hover:opacity-100"
@@ -114,10 +119,19 @@ export function FileUpload({
             exit={{ opacity: 0 }}
           >
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="Upload gambar"
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onClick={() => !disabled && inputRef.current?.click()}
+              onKeyDown={(e: KeyboardEvent) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  if (!disabled) inputRef.current?.click();
+                }
+              }}
               className={`relative flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-xl transition-all duration-200 cursor-pointer select-none ${
                 isDragging
                   ? "border-forest-400 bg-forest-50/60 scale-[1.01]"

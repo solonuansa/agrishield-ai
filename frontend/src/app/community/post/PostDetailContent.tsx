@@ -23,15 +23,25 @@ export default function PostDetailContent() {
   const id = searchParams.get("id");
   const mockPost = id ? getMockCommunityPostDetailById(id) : null;
 
-  const { data: post, isLoading, isError } = useQuery<PostDetail>({
+  const { data: post, isLoading } = useQuery<PostDetail>({
     queryKey: ["community-post", id],
-    queryFn: () => apiGet<PostDetail>(`/community/posts/${id}`),
-    enabled: Boolean(id && !mockPost),
+    queryFn: async () => {
+      if (mockPost) return mockPost;
+      try {
+        return await apiGet<PostDetail>(`/community/posts/${id}`);
+      } catch {
+        if (mockPost) return mockPost;
+        throw new Error("Gagal memuat diskusi.");
+      }
+    },
+    enabled: Boolean(id),
+    placeholderData: mockPost ?? undefined,
+    retry: false,
   });
 
   if (!id) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20 text-center">
+      <div className="mx-auto max-w-3xl px-6 pb-16 pt-10 text-center sm:pb-20 sm:pt-12">
         <p className="text-sm text-clay-dark">ID diskusi tidak ditemukan.</p>
         <Link href="/community" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-forest-700 transition-colors hover:text-clay">
           <ArrowLeft size={16} />
@@ -43,7 +53,7 @@ export default function PostDetailContent() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+      <div className="mx-auto max-w-3xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
         <div className="space-y-6">
           <Skeleton width="120px" />
           <Skeleton width="80px" height="1.3em" />
@@ -61,9 +71,9 @@ export default function PostDetailContent() {
 
   const displayPost = post ?? mockPost;
 
-  if (isError || !displayPost) {
+  if (!displayPost) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20 text-center">
+      <div className="mx-auto max-w-3xl px-6 pb-16 pt-10 text-center sm:pb-20 sm:pt-12">
         <p className="text-sm text-clay-dark">Gagal memuat diskusi.</p>
         <Link href="/community" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-forest-700 transition-colors hover:text-clay">
           <ArrowLeft size={16} />
@@ -74,7 +84,7 @@ export default function PostDetailContent() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+    <div className="mx-auto max-w-3xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <Link href="/community" className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted transition-colors hover:text-forest-700">
         <ArrowLeft size={16} />
         Kembali ke Komunitas

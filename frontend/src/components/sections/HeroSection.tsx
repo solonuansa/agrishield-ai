@@ -54,7 +54,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-              className="mt-5 max-w-lg text-base leading-relaxed text-cream/75 lg:text-[1.05rem]"
+              className="mt-5 max-w-lg text-base leading-relaxed text-cream/85 lg:text-[1.05rem]"
             >
               AgriShield membantu petani, penyuluh, dan komunitas tani mengenali
               kondisi tanaman lebih cepat melalui foto daun, lalu memberikan
@@ -85,7 +85,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.42, ease: [0.25, 0.1, 0.25, 1] }}
-              className="mt-7 grid max-w-lg gap-1.5 text-sm text-cream/65"
+              className="mt-7 grid max-w-lg gap-1.5 text-sm text-cream/80"
             >
               {highlights.map((item) => (
                 <li key={item} className="flex items-start gap-2.5">
@@ -134,7 +134,7 @@ export default function HeroSection() {
                     <div className="rounded-xl border border-cream/10 bg-forest-700/60 p-3.5 backdrop-blur-sm">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-cream/50">Hasil Analisis</p>
+                          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-cream/60">Hasil Analisis</p>
                           <p className="mt-0.5 font-serif text-lg font-semibold text-cream">Blast Padi</p>
                         </div>
                         <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-clay-light/40">
@@ -149,11 +149,11 @@ export default function HeroSection() {
                     {/* Quick actions */}
                     <div className="grid grid-cols-2 gap-2">
                       <div className="rounded-lg border border-cream/10 bg-forest-700/40 px-3 py-2">
-                        <p className="text-[0.6rem] uppercase tracking-wider text-cream/40">Tanaman</p>
+                        <p className="text-[0.6rem] uppercase tracking-wider text-cream/55">Tanaman</p>
                         <p className="mt-0.5 text-xs font-semibold text-cream/90">Padi</p>
                       </div>
                       <div className="rounded-lg border border-cream/10 bg-forest-700/40 px-3 py-2">
-                        <p className="text-[0.6rem] uppercase tracking-wider text-cream/40">Status</p>
+                        <p className="text-[0.6rem] uppercase tracking-wider text-cream/55">Status</p>
                         <p className="mt-0.5 text-xs font-semibold text-clay-light">Penyakit Terdeteksi</p>
                       </div>
                     </div>
@@ -173,7 +173,7 @@ export default function HeroSection() {
                     <Shield className="h-3.5 w-3.5 text-clay-light" />
                   </div>
                   <div>
-                    <p className="text-[0.6rem] font-bold uppercase tracking-wider text-cream/50">Terlindungi</p>
+                    <p className="text-[0.6rem] font-bold uppercase tracking-wider text-cream/60">Terlindungi</p>
                     <p className="text-[0.75rem] font-semibold text-cream">AgriShield AI</p>
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export default function HeroSection() {
                 transition={{ duration: 0.6, delay: 0.85, ease: [0.25, 0.1, 0.25, 1] }}
                 className="absolute -bottom-3 -left-6 z-20 rounded-xl border border-cream/10 bg-forest-800/95 px-4 py-3 shadow-lg backdrop-blur-md"
               >
-                <p className="text-[0.6rem] font-bold uppercase tracking-wider text-cream/50">Scan Terdaftar</p>
+                <p className="text-[0.6rem] font-bold uppercase tracking-wider text-cream/60">Scan Terdaftar</p>
                 <p className="mt-0.5 font-serif text-xl font-semibold text-cream">12.450+</p>
                 <div className="mt-1.5 flex items-center gap-1">
                   <span className="h-1 w-1 rounded-full bg-emerald-400" />

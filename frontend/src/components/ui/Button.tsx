@@ -12,7 +12,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   icon?: LucideIcon;
   iconRight?: LucideIcon;
-  children: ReactNode;
+  children?: ReactNode;
+  ariaLabel?: string;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -49,6 +50,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       className = "",
       disabled,
+      ariaLabel,
       ...props
     },
     ref
@@ -56,10 +58,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const isDisabled = disabled || loading;
     const iconSize = iconSizes[size];
 
+    const resolvedAriaLabel =
+      ariaLabel ||
+      (!children ? (Icon ? (Icon as { displayName?: string }).displayName || "button" : "button") : undefined);
+
     return (
       <button
         ref={ref}
         disabled={isDisabled}
+        aria-label={resolvedAriaLabel}
         className={`inline-flex items-center justify-center font-semibold transition-all duration-200 whitespace-nowrap select-none ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
         {...props}
       >

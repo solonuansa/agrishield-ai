@@ -23,19 +23,26 @@ function cropLabel(value: CommunityPost["crop_type"]) {
 
 export default function CommunityPage() {
   const router = useRouter();
-  const { data: posts, isLoading, isError } = useQuery<CommunityPost[]>({
+  const { data: posts, isFetching } = useQuery<CommunityPost[]>({
     queryKey: ["community-posts"],
     queryFn: async () => {
-      return apiGet<CommunityPost[]>("/community/posts?per_page=15");
+      try {
+        const livePosts = await apiGet<CommunityPost[]>("/community/posts?per_page=15");
+        return livePosts.length > 0 ? livePosts : MOCK_COMMUNITY_POSTS;
+      } catch {
+        return MOCK_COMMUNITY_POSTS;
+      }
     },
+    placeholderData: MOCK_COMMUNITY_POSTS,
+    retry: false,
   });
 
   const postList = posts ?? [];
-  const usingMockData = isError || postList.length === 0;
+  const usingMockData = posts === MOCK_COMMUNITY_POSTS || postList.length === 0;
   const displayedPosts = usingMockData ? MOCK_COMMUNITY_POSTS : postList;
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
+    <div className="mx-auto max-w-4xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <PageHeader
         title="Komunitas"
         description="Pelajari pengalaman lapangan, pertanyaan gejala, dan tips pencegahan dari sesama petani."
@@ -46,7 +53,7 @@ export default function CommunityPage() {
         }
       />
 
-      {isLoading ? (
+      {isFetching && displayedPosts.length === 0 ? (
         <SkeletonLines count={4} />
       ) : (
         <div>

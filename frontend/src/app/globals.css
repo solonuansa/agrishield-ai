@@ -178,6 +178,8 @@
 html {
   scroll-behavior: smooth;
   font-size: clamp(15.75px, 15.3px + 0.2vw, 17.5px);
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -189,6 +191,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 h1, h2, h3, h4 {
@@ -212,17 +216,6 @@ p, li {
 ::selection {
   background: var(--color-forest-200);
   color: var(--color-forest-900);
-}
-
-/* ---- Scrollbar ---- */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: var(--color-cream-300);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-earth-500);
 }
 
 /* ============================================================

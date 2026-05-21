@@ -2,7 +2,19 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  Loader2,
+  RefreshCw,
+  ShieldCheck,
+  Sprout,
+  Leaf,
+  Sun,
+  ScanSearch,
+  Ruler,
+  Ban,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiGet, apiPostForm, ApiError } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
@@ -18,12 +30,14 @@ import { fadeUp, staggerContainer, staggerItem } from "@/lib/motion";
 
 type CropType = "rice" | "corn";
 
+type IconComponent = typeof Sprout;
+
 function cropLabel(value: CropType) {
   return value === "rice" ? "Padi" : "Jagung";
 }
 
-function cropEmoji(value: CropType) {
-  return value === "rice" ? "🌾" : "🌽";
+function cropIcon(value: CropType): IconComponent {
+  return value === "rice" ? Leaf : Sprout;
 }
 
 const statusVariantMap: Record<string, "default" | "success" | "warning" | "danger" | "info"> = {
@@ -47,10 +61,10 @@ const PROCESSING_STEPS = [
 ];
 
 const PHOTO_TIPS = [
-  { icon: "☀️", text: "Pastikan pencahayaan cukup terang." },
-  { icon: "🔍", text: "Fokuskan kamera pada gejala di daun." },
-  { icon: "📏", text: "Jarak ideal 10-30 cm dari objek." },
-  { icon: "🚫", text: "Hindari bayangan yang menutup area gejala." },
+  { icon: Sun, text: "Pastikan pencahayaan cukup terang." },
+  { icon: ScanSearch, text: "Fokuskan kamera pada gejala di daun." },
+  { icon: Ruler, text: "Jarak ideal 10-30 cm dari objek." },
+  { icon: Ban, text: "Hindari bayangan yang menutup area gejala." },
 ];
 
 export default function ScanPage() {
@@ -174,7 +188,7 @@ export default function ScanPage() {
   }, [scanData, toast]);
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+    <div className="mx-auto max-w-3xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <Link
         href="/"
         className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-ink-muted transition-colors hover:text-forest-700"
@@ -202,7 +216,9 @@ export default function ScanPage() {
       <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-8">
         <label className="mb-3 block text-sm font-semibold text-ink">Jenis Tanaman</label>
         <div className="grid grid-cols-2 gap-4">
-          {(["rice", "corn"] as const).map((crop) => (
+          {(["rice", "corn"] as const).map((crop) => {
+            const CropIcon = cropIcon(crop);
+            return (
             <motion.button
               key={crop}
               type="button"
@@ -215,7 +231,15 @@ export default function ScanPage() {
                   : "border-cream-300 bg-white/60 hover:border-cream-400"
               }`}
             >
-              <span className="text-3xl">{cropEmoji(crop)}</span>
+              <span
+                className={`inline-flex h-11 w-11 items-center justify-center rounded-full border ${
+                  crop === cropType
+                    ? "border-forest-200 bg-forest-100 text-forest-700"
+                    : "border-cream-300 bg-cream-100 text-ink-muted"
+                }`}
+              >
+                <CropIcon className="h-5 w-5" />
+              </span>
               <span
                 className={`text-sm font-semibold ${
                   crop === cropType ? "text-forest-700" : "text-ink-muted"
@@ -224,7 +248,8 @@ export default function ScanPage() {
                 {cropLabel(crop)}
               </span>
             </motion.button>
-          ))}
+            );
+          })}
         </div>
       </motion.div>
 
@@ -252,7 +277,7 @@ export default function ScanPage() {
         </div>
       </motion.div>
 
-      <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-10">
+      <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-6">
         <Button
           variant="primary"
           size="lg"
@@ -273,7 +298,7 @@ export default function ScanPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
             transition={{ duration: 0.3 }}
-            className="mb-10"
+            className="mb-6"
           >
             <Card variant="default" className="p-6">
               <div className="space-y-4">
@@ -308,7 +333,7 @@ export default function ScanPage() {
             initial="hidden"
             animate="visible"
             exit={{ opacity: 0, y: 12 }}
-            className="mb-10"
+            className="mb-6"
           >
             <Card variant="default" className="overflow-hidden">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cream-200 bg-cream-50/50 px-6 py-3">
@@ -404,7 +429,7 @@ export default function ScanPage() {
         variants={fadeUp}
         initial="hidden"
         animate="visible"
-        className="border-t border-cream-200 pt-8"
+        className="border-t border-cream-200 pt-6"
       >
         <Card variant="flat" className="p-6">
           <h3 className="mb-4 text-sm font-semibold text-forest-700">
@@ -422,7 +447,9 @@ export default function ScanPage() {
                 variants={staggerItem}
                 className="flex items-start gap-3 text-sm text-ink-muted"
               >
-                <span className="shrink-0 text-base">{tip.icon}</span>
+                <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cream-100 text-ink-muted">
+                  <tip.icon className="h-3.5 w-3.5" />
+                </span>
                 <span>{tip.text}</span>
               </motion.li>
             ))}

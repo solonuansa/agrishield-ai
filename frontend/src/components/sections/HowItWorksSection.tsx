@@ -23,7 +23,7 @@ const steps = [
 
 export default function HowItWorksSection() {
   return (
-    <section id="fitur" className="bg-cream-dark">
+    <section id="cara-kerja" className="bg-cream-dark">
       <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16 lg:px-8">
         {/* Header */}
         <div className="mb-12 text-center">

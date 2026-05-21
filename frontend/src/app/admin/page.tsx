@@ -25,7 +25,7 @@ function AdminContent() {
   const stats = statsQuery.data;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+    <div className="mx-auto max-w-6xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <PageHeader title="Panel Admin" description="Statistik nasional AgriShield AI." />
 
       {statsQuery.isLoading ? (

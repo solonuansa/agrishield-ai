@@ -30,7 +30,7 @@ export function ToastContainer() {
   const removeToast = useToastStore((s) => s.removeToast);
 
   return (
-    <div className="fixed top-4 right-4 z-[var(--z-toast)] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    <div role="status" aria-live="polite" className="fixed top-4 right-4 z-[var(--z-toast)] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
       <AnimatePresence>
         {toasts.map((toast) => {
           const Icon = iconMap[toast.type];
@@ -48,6 +48,7 @@ export function ToastContainer() {
               <p className="text-sm text-ink flex-1 leading-snug">{toast.message}</p>
               <button
                 onClick={() => removeToast(toast.id)}
+                aria-label="Tutup notifikasi"
                 className="shrink-0 text-ink-muted hover:text-ink transition-colors"
               >
                 <X size={16} />

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { clearSession, readSession } from "@/lib/auth";
+import { useToast } from "@/lib/hooks/useToast";
 
 const links = [
   { href: "/", label: "Home" },
@@ -19,6 +20,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const session = readSession();
+  const toast = useToast();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,9 +33,12 @@ export default function Navbar() {
 
   const handleLogout = () => {
     clearSession();
-    if (typeof window !== "undefined") {
-      window.location.replace("/");
-    }
+    toast.success("Anda telah keluar.");
+    setTimeout(() => {
+      if (typeof window !== "undefined") {
+        window.location.replace("/");
+      }
+    }, 300);
   };
 
   const isActive = (href: string) => {
@@ -63,6 +68,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
+                aria-current={active ? "page" : undefined}
                 className={`relative text-[0.97rem] transition-colors duration-200 ${
                   active
                     ? "font-semibold text-forest-700"
@@ -108,6 +114,8 @@ export default function Navbar() {
           onClick={() => setOpen(!open)}
           className="rounded p-2 text-ink-soft md:hidden"
           aria-label="Menu"
+          aria-expanded={open}
+          aria-controls="mobile-menu"
         >
           <svg width="20" height="14" viewBox="0 0 20 14" fill="none" className={open ? "hidden" : "block"}>
             <path d="M0 1h20M0 7h20M0 13h20" stroke="currentColor" strokeWidth="1.5" />
@@ -125,6 +133,7 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
+            id="mobile-menu"
             className="overflow-hidden border-t border-cream-darker/50 bg-cream/95 md:hidden"
           >
             <div className="px-6 pb-6 pt-4">

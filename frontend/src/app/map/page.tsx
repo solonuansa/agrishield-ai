@@ -38,6 +38,102 @@ const CROP_OPTIONS = [
   { value: "corn", label: "Jagung" },
 ] as const;
 
+const DUMMY_HEATMAP: HeatmapResponse = {
+  total: 10,
+  points: [
+    {
+      scan_id: "dummy-sleman-001",
+      lat: -7.7241,
+      lng: 110.3623,
+      disease: "Blast Padi",
+      crop_type: "rice",
+      confidence: 0.89,
+      month: "2026-05",
+    },
+    {
+      scan_id: "dummy-sleman-002",
+      lat: -7.7185,
+      lng: 110.3698,
+      disease: "Hawar Daun Bakteri",
+      crop_type: "rice",
+      confidence: 0.81,
+      month: "2026-05",
+    },
+    {
+      scan_id: "dummy-sleman-003",
+      lat: -7.7312,
+      lng: 110.3744,
+      disease: "Bercak Cokelat",
+      crop_type: "rice",
+      confidence: 0.62,
+      month: "2026-04",
+    },
+    {
+      scan_id: "dummy-sleman-004",
+      lat: -7.7094,
+      lng: 110.3561,
+      disease: "Blast Padi",
+      crop_type: "rice",
+      confidence: 0.86,
+      month: "2026-04",
+    },
+    {
+      scan_id: "dummy-sleman-005",
+      lat: -7.7428,
+      lng: 110.3815,
+      disease: "Tungro",
+      crop_type: "rice",
+      confidence: 0.58,
+      month: "2026-03",
+    },
+    {
+      scan_id: "dummy-sleman-006",
+      lat: -7.7354,
+      lng: 110.3492,
+      disease: "Karat Jagung",
+      crop_type: "corn",
+      confidence: 0.77,
+      month: "2026-05",
+    },
+    {
+      scan_id: "dummy-sleman-007",
+      lat: -7.7217,
+      lng: 110.3908,
+      disease: "Hawar Daun Utara",
+      crop_type: "corn",
+      confidence: 0.84,
+      month: "2026-04",
+    },
+    {
+      scan_id: "dummy-sleman-008",
+      lat: -7.7471,
+      lng: 110.3659,
+      disease: "Bercak Daun Abu-abu",
+      crop_type: "corn",
+      confidence: 0.56,
+      month: "2026-03",
+    },
+    {
+      scan_id: "dummy-sleman-009",
+      lat: -7.7132,
+      lng: 110.4014,
+      disease: "Busuk Tongkol",
+      crop_type: "corn",
+      confidence: 0.88,
+      month: "2026-02",
+    },
+    {
+      scan_id: "dummy-sleman-010",
+      lat: -7.7299,
+      lng: 110.3437,
+      disease: "Hawar Daun Selatan",
+      crop_type: "corn",
+      confidence: 0.68,
+      month: "2026-02",
+    },
+  ],
+};
+
 function toCropLabel(value: string) {
   return value === "rice" ? "Padi" : "Jagung";
 }
@@ -60,9 +156,18 @@ function diseaseBadgeVariant(disease: string): BadgeVariant {
 }
 
 export default function MapPage() {
-  const { data: heatmap, isLoading, isError } = useQuery<HeatmapResponse>({
+  const { data: heatmap, isLoading } = useQuery<HeatmapResponse>({
     queryKey: ["heatmap"],
-    queryFn: () => apiGet<HeatmapResponse>("/map/heatmap?months=6", null, "force-cache"),
+    queryFn: async () => {
+      try {
+        const liveData = await apiGet<HeatmapResponse>("/map/heatmap?months=6", null, "force-cache");
+        if (!liveData.points.length) return DUMMY_HEATMAP;
+        return liveData;
+      } catch {
+        return DUMMY_HEATMAP;
+      }
+    },
+    retry: false,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -89,7 +194,7 @@ export default function MapPage() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+    <div className="mx-auto max-w-6xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <PageHeader
         title="Peta Sebaran"
         description="Titik berikut berasal dari hasil scan dalam 6 bulan terakhir. Gunakan data ini untuk memantau area rawan lebih dini."
@@ -169,14 +274,6 @@ export default function MapPage() {
         </div>
         {isLoading ? (
           <Skeleton variant="chart" className="h-[28rem] rounded-t-none" />
-        ) : isError ? (
-          <div className="flex h-[28rem] items-center justify-center">
-            <EmptyState
-              icon={<TriangleAlert size={32} />}
-              title="Gagal Memuat Data"
-              description="Terjadi kesalahan saat memuat data peta. Silakan coba lagi."
-            />
-          </div>
         ) : allPoints.length === 0 ? (
           <div className="flex h-[28rem] items-center justify-center">
             <EmptyState
@@ -201,12 +298,6 @@ export default function MapPage() {
           <div className="px-4 py-10">
             <SkeletonLines count={5} />
           </div>
-        ) : isError ? (
-          <EmptyState
-            icon={<TriangleAlert size={32} />}
-            title="Gagal Memuat Data"
-            description="Terjadi kesalahan saat memuat data peta. Silakan coba lagi."
-          />
         ) : filteredPoints.length === 0 ? (
           <EmptyState
             icon={<TriangleAlert size={32} />}

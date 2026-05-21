@@ -30,7 +30,7 @@ function FieldsContent() {
   const fields = fieldsQuery.data ?? [];
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16 sm:py-20">
+    <div className="mx-auto max-w-5xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <PageHeader title="Lahan Saya" description="Kelola lahan pertanian Anda." />
 
       {fieldsQuery.isLoading ? (
