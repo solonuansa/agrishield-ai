@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     r2_secret_access_key: str = ""
     r2_public_url: str = ""
 
+    # Logging
+    log_level: str = "INFO"
+
     # CORS
     allowed_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 

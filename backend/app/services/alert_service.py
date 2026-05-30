@@ -100,6 +100,13 @@ async def run_outbreak_detection(db: AsyncSession) -> int:
             (scan.latitude, scan.longitude, scan.city or scan.province)
         )
 
+    # Deduplikasi: titik koordinat yang sama (dibulatkan 3 desimal ~100m)
+    # dihitung sekali saja agar tidak bias
+    groups = {
+        key: _dedup_points(points)
+        for key, points in groups.items()
+    }
+
     new_alerts = 0
     for (disease, crop_type), points in groups.items():
         if len(points) < CLUSTER_THRESHOLD:
@@ -166,6 +173,23 @@ async def run_outbreak_detection(db: AsyncSession) -> int:
 
     await db.commit()
     return new_alerts
+
+
+def _dedup_points(
+    points: list[tuple[float, float, str | None]],
+) -> list[tuple[float, float, str | None]]:
+    """
+    Hapus duplikasi koordinat yang sama (dibulatkan 3 desimal ≈ 100m).
+    Mempertahankan urutan pertama ditemukan.
+    """
+    seen: set[tuple[float, float]] = set()
+    result: list[tuple[float, float, str | None]] = []
+    for lat, lng, area in points:
+        key = (round(lat, 3), round(lng, 3))
+        if key not in seen:
+            seen.add(key)
+            result.append((lat, lng, area))
+    return result
 
 
 def _find_clusters(

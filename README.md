@@ -1,8 +1,25 @@
 # AgriShield AI
 
-**Platform deteksi penyakit tanaman berbasis AI untuk petani Indonesia.**
+Platform deteksi penyakit tanaman berbasis AI untuk petani Indonesia.
 
-AgriShield AI membantu petani mendeteksi penyakit tanaman padi dan jagung secara cepat dan akurat — cukup dengan foto dari smartphone, tanpa membutuhkan keahlian khusus.
+AgriShield AI membantu petani mendeteksi penyakit tanaman padi dan jagung secara cepat dan akurat melalui foto dari smartphone, tanpa membutuhkan keahlian khusus.
+
+---
+
+## Daftar Isi
+
+- [Latar Belakang](#latar-belakang)
+- [Fitur Utama](#fitur-utama)
+- [Tanaman yang Didukung](#tanaman-yang-didukung)
+- [Tech Stack](#tech-stack)
+- [Prasyarat](#prasyarat)
+- [Setup Development (Docker Compose)](#setup-development-docker-compose)
+- [Menjalankan Frontend Tanpa Docker](#menjalankan-frontend-tanpa-docker)
+- [Perintah Umum](#perintah-umum)
+- [Deployment Production](#deployment-production)
+- [Struktur Direktori](#struktur-direktori)
+- [Status Pengembangan](#status-pengembangan)
+- [Lisensi](#lisensi)
 
 ---
 
@@ -10,12 +27,12 @@ AgriShield AI membantu petani mendeteksi penyakit tanaman padi dan jagung secara
 
 Indonesia adalah negara agraris dengan lebih dari 33 juta petani, mayoritas adalah petani kecil yang menghadapi tantangan nyata setiap musim tanam:
 
-- **Akses terbatas ke penyuluh pertanian** — rasio penyuluh dan petani sangat timpang, terutama di daerah terpencil
-- **Keterlambatan diagnosis** — penyakit yang tidak terdeteksi dini menyebabkan gagal panen yang seharusnya bisa dicegah
-- **Tidak ada sistem peringatan dini** — wabah penyakit menyebar tanpa data yang terstruktur
-- **Kerugian ekonomi** — penanganan yang salah atau terlambat mengakibatkan kerugian miliaran rupiah setiap tahunnya
+- Akses terbatas ke penyuluh pertanian, terutama di daerah terpencil
+- Keterlambatan diagnosis yang menyebabkan gagal panen yang seharusnya bisa dicegah
+- Tidak ada sistem peringatan dini untuk wabah penyakit
+- Kerugian ekonomi akibat penanganan yang salah atau terlambat
 
-AgriShield AI hadir sebagai solusi digital yang dapat diakses kapan saja, di mana saja, dengan antarmuka yang sederhana untuk pengguna non-teknis.
+AgriShield AI hadir sebagai solusi digital yang dapat diakses dengan antarmuka sederhana untuk pengguna non-teknis.
 
 ---
 
@@ -25,19 +42,19 @@ AgriShield AI hadir sebagai solusi digital yang dapat diakses kapan saja, di man
 Upload foto daun tanaman, AI menganalisis dan mengidentifikasi penyakit dalam hitungan detik. Didukung model EfficientNet-B3 yang di-fine-tune khusus untuk tanaman padi dan jagung Indonesia.
 
 ### Rekomendasi Penanganan Berbasis AI
-Setelah deteksi, sistem menghasilkan rekomendasi penanganan yang praktis menggunakan Generative AI (Claude). Langkah-langkah ditulis dalam Bahasa Indonesia yang mudah dipahami petani, lengkap dengan nama produk, dosis, dan estimasi biaya.
+Setelah deteksi, sistem menghasilkan rekomendasi penanganan yang praktis menggunakan Google Gemini. Langkah-langkah ditulis dalam Bahasa Indonesia yang mudah dipahami petani, lengkap dengan nama produk, dosis, dan estimasi biaya.
 
 ### Peta Persebaran Penyakit
-Visualisasi heatmap interaktif yang menampilkan persebaran penyakit di seluruh Indonesia secara real-time. Data dikumpulkan dari laporan pengguna dan dapat difilter per jenis penyakit dan rentang waktu.
+Visualisasi heatmap interaktif yang menampilkan persebaran penyakit di seluruh Indonesia secara real-time. Data dikumpulkan dari laporan pengguna dan dapat difilter per jenis penyakit, tanaman, dan rentang waktu.
 
 ### Sistem Peringatan Dini
-Notifikasi otomatis ketika wabah penyakit terdeteksi di wilayah terdekat, memungkinkan petani mengambil tindakan pencegahan sebelum lahan mereka terdampak.
+Notifikasi otomatis ketika wabah penyakit terdeteksi di wilayah terdekat, memungkinkan petani mengambil tindakan pencegahan sebelum lahan mereka terdampak. Didukung algoritma clustering Haversine dengan radius 50 km.
 
 ### Dashboard Analitik
-Dashboard khusus untuk penyuluh pertanian, dinas pertanian, dan NGO. Menampilkan tren penyakit, peta area rawan, statistik laporan, dan mendukung export data CSV/PDF.
+Dashboard khusus untuk petani, penyuluh pertanian, dan dinas pertanian. Menampilkan tren penyakit, statistik scan, distribusi tanaman, dan riwayat diagnosis.
 
-### Komunitas Petani
-Forum diskusi antar petani untuk berbagi pengalaman, foto gejala, dan solusi penanganan. Dimoderasi oleh penyuluh pertanian terverifikasi.
+### Forum Komunitas Petani
+Diskusi antar petani untuk berbagi pengalaman, pertanyaan gejala, dan tips pencegahan. Mendukung like, komentar, filter kategori, dan pencarian.
 
 ---
 
@@ -45,10 +62,8 @@ Forum diskusi antar petani untuk berbagi pengalaman, foto gejala, dan solusi pen
 
 | Tanaman | Penyakit yang Dapat Dideteksi |
 |---|---|
-| **Padi** | Blast Padi, Hawar Daun Bakteri, Bercak Cokelat, Hispa |
-| **Jagung** | Hawar Daun Utara, Karat Jagung, Bercak Daun Abu-abu |
-
-> Lebih banyak tanaman dan penyakit akan ditambahkan pada fase pengembangan berikutnya.
+| Padi (5 kelas) | Blast Padi, Hawar Daun Bakteri, Bercak Cokelat, Hispa, Sehat |
+| Jagung (4 kelas) | Hawar Daun Utara, Karat Jagung, Bercak Daun Abu-abu, Sehat |
 
 ---
 
@@ -56,74 +71,71 @@ Forum diskusi antar petani untuk berbagi pengalaman, foto gejala, dan solusi pen
 
 | Layer | Teknologi |
 |---|---|
-| **Frontend** | Next.js 16, React 19, Tailwind CSS 4, TypeScript 5 |
-| **Backend API** | FastAPI 0.110, Python 3.11, SQLAlchemy 2, Alembic, Pydantic 2 |
-| **Task Queue** | Celery 5, Redis 7 |
-| **Database** | PostgreSQL 16 + PostGIS 3 |
-| **ML Inference** | ONNX Runtime, EfficientNet-B3 (fine-tuned) |
-| **Generative AI** | Google Gemini (via `recommendation_service.py`) |
-| **Object Storage** | Cloudflare R2 (S3-compatible) |
-| **Infrastruktur** | Docker, Docker Compose, Nginx, GitHub Actions |
+| Frontend | Next.js 16, React 19, Tailwind CSS 4, TypeScript 5, Framer Motion, Recharts |
+| Backend API | FastAPI, Python 3.11, SQLAlchemy 2, Alembic, Pydantic 2 |
+| Task Queue | Celery 5 + Redis 7 |
+| Database | PostgreSQL 16 + PostGIS 3 |
+| ML Inference | ONNX Runtime, EfficientNet-B3 (fine-tuned) |
+| Generative AI | Google Gemini (via recommendation_service.py) |
+| Object Storage | Cloudflare R2 (S3-compatible) |
+| Infrastruktur | Docker, Docker Compose, Nginx, GitHub Actions |
 
 ---
 
-## Setup Development
-
-### Prasyarat
+## Prasyarat
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (sudah include Docker Compose)
 - [Node.js 22+](https://nodejs.org/) (untuk dev frontend di host)
 - Git
 
-### Langkah Setup
+---
 
-**1. Clone repository**
+## Setup Development (Docker Compose)
+
+### 1. Clone repository
+
 ```bash
 git clone https://github.com/your-org/agrishield-ai.git
 cd agrishield-ai
 ```
 
-**2. Salin dan isi environment variables**
+### 2. Salin dan isi environment variables
+
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` — minimal isi:
-- `SECRET_KEY` — string acak minimal 32 karakter
-- `GEMINI_API_KEY` — untuk fitur rekomendasi AI (Google Gemini)
-- `R2_*` — konfigurasi Cloudflare R2 untuk object storage
+Edit `.env` -- minimal isi:
+- `SECRET_KEY` - string acak minimal 32 karakter
+- `GEMINI_API_KEY` - untuk fitur rekomendasi AI
+- `R2_*` - konfigurasi Cloudflare R2
 
-**3. Jalankan semua service dengan Docker Compose**
+### 3. Jalankan semua service
 
 ```bash
-# Windows (PowerShell / CMD)
-docker compose up -d
-
-# Linux / macOS
 docker compose up -d
 ```
 
-**4. Jalankan migrasi database**
+### 4. Jalankan migrasi database
+
 ```bash
 docker compose exec api alembic upgrade head
 ```
 
-**5. Akses aplikasi**
+### 5. Akses aplikasi
 
 | Service | URL |
 |---|---|
-| Aplikasi web (via Nginx) | http://localhost |
-| Frontend langsung (Next.js) | http://localhost:3000 |
-| API Swagger docs | http://localhost/docs |
+| Frontend (Next.js) | http://localhost:3000 |
+| API Swagger docs | http://localhost:8000/docs |
 | Backend API langsung | http://localhost:8000 |
-
-> **Catatan**: Di development, frontend berjalan pada port `3000` (Next.js dev server). Nginx di port `80` akan proxy ke frontend. Jika port `80` sudah dipakai, ubah mapping port di `docker-compose.yml`.
+| Aplikasi lengkap (via Nginx) | http://localhost |
 
 ---
 
-## Menjalankan Frontend Tanpa Docker (Dev Mode)
+## Menjalankan Frontend Tanpa Docker
 
-Untuk pengembangan frontend dengan hot-reload yang lebih cepat, jalankan langsung di host:
+Untuk pengembangan frontend dengan hot-reload yang lebih cepat:
 
 ```bash
 cd frontend
@@ -133,29 +145,30 @@ npm run dev
 
 Frontend akan tersedia di **http://localhost:3000**
 
+Pastikan backend sudah berjalan melalui Docker Compose agar API dapat diakses.
+
 ---
 
 ## Perintah Umum
 
-### Docker Compose (Windows & Linux)
+### Docker Compose
 
 ```bash
-# Jalankan semua service
+# Menjalankan semua service
 docker compose up -d
 
-# Hentikan semua service
+# Menghentikan semua service
 docker compose down
 
-# Lihat log service
+# Melihat log service
 docker compose logs -f api
 docker compose logs -f worker
 docker compose logs -f ml-service
-docker compose logs -f frontend
 
 # Restart service tertentu
-docker compose restart frontend
+docker compose restart api
 
-# Rebuild setelah ubah Dockerfile
+# Rebuild service
 docker compose build frontend
 docker compose up -d frontend
 ```
@@ -163,26 +176,35 @@ docker compose up -d frontend
 ### Database
 
 ```bash
-# Jalankan migrasi
+# Menjalankan migrasi
 docker compose exec api alembic upgrade head
 
 # Rollback satu migrasi
 docker compose exec api alembic downgrade -1
 
-# Buat migrasi baru
-docker compose exec api alembic revision --autogenerate -m "deskripsi"
+# Membuat migrasi baru
+docker compose exec api alembic revision --autogenerate -m "deskripsi perubahan"
 
-# Masuk ke PostgreSQL
+# Masuk ke shell database
 docker compose exec db psql -U postgres -d agrishield
 ```
 
 ### Testing
 
 ```bash
-# Backend unit test
-cd backend && pytest tests/ -v
+# Backend - semua test
+cd backend && pytest tests/ -v --cov=app
 
-# Frontend build test
+# Frontend - type check
+cd frontend && npm run type-check
+
+# Frontend - lint
+cd frontend && npm run lint
+
+# Frontend - unit test
+cd frontend && npm run test
+
+# Frontend - build
 cd frontend && npm run build
 ```
 
@@ -199,50 +221,45 @@ cd frontend && npm run build
 
 ### Langkah Deploy Pertama Kali
 
-**1. Clone repo di server**
-```bash
-git clone https://github.com/your-org/agrishield-ai.git /opt/agrishield-ai
-cd /opt/agrishield-ai
-```
+1. Clone repo di server:
+   ```bash
+   git clone https://github.com/your-org/agrishield-ai.git /opt/agrishield-ai
+   cd /opt/agrishield-ai
+   ```
 
-**2. Buat file `.env` production**
-```bash
-cp .env.example .env
-# Edit .env — isi semua nilai, terutama:
-# - SECRET_KEY (random 64 karakter)
-# - POSTGRES_PASSWORD (password kuat)
-# - GEMINI_API_KEY
-# - R2_* credentials
-# - ENVIRONMENT=production
-```
+2. Buat file `.env` production:
+   ```bash
+   cp .env.example .env
+   ```
+   Isi semua nilai: SECRET_KEY, POSTGRES_PASSWORD, GEMINI_API_KEY, R2 credentials, ENVIRONMENT=production.
 
-**3. Pasang SSL dengan Certbot**
-```bash
-apt install certbot
-certbot certonly --standalone -d agrishield.id -d www.agrishield.id
-```
+3. Pasang SSL dengan Certbot:
+   ```bash
+   apt install certbot
+   certbot certonly --standalone -d agrishield.id -d www.agrishield.id
+   ```
 
-**4. Jalankan service**
-```bash
-docker compose -f docker-compose.prod.yml up -d
-docker compose -f docker-compose.prod.yml exec api alembic upgrade head
-```
+4. Jalankan service production:
+   ```bash
+   docker compose -f docker-compose.prod.yml up -d
+   docker compose -f docker-compose.prod.yml exec api alembic upgrade head
+   ```
 
 ### CI/CD Otomatis
 
-Push ke branch `main` → GitHub Actions otomatis:
+Push ke branch `main` memicu GitHub Actions untuk:
 1. Menjalankan lint dan test
-2. Build Docker image untuk `api`, `ml-service`, dan `frontend`
+2. Build Docker image (api, ml-service, frontend)
 3. Push image ke GitHub Container Registry (GHCR)
 4. Deploy ke server via SSH
 
-**Secrets yang perlu diset di GitHub repository:**
+**Secrets GitHub yang diperlukan:**
 
 | Secret | Keterangan |
 |---|---|
-| `SSH_HOST` | IP atau domain server production |
-| `SSH_USER` | Username SSH (contoh: `ubuntu`) |
-| `SSH_PRIVATE_KEY` | Private key SSH (tanpa passphrase) |
+| SSH_HOST | IP atau domain server production |
+| SSH_USER | Username SSH (contoh: ubuntu) |
+| SSH_PRIVATE_KEY | Private key SSH (tanpa passphrase) |
 
 ---
 
@@ -250,26 +267,44 @@ Push ke branch `main` → GitHub Actions otomatis:
 
 ```
 agrishield-ai/
-├── frontend/          # Next.js 16 + React 19 + Tailwind CSS 4
-├── backend/           # FastAPI utama (auth, scan, dll)
-├── ml-service/        # FastAPI inferensi model ONNX
-├── ml-training/       # Notebook & script training (tidak di-push ke git)
-├── nginx/             # Konfigurasi reverse proxy
-├── docker-compose.yml
-└── docker-compose.prod.yml
+├── frontend/              # Next.js 16 (React 19, Tailwind CSS 4)
+│   └── src/
+│       ├── app/           # Halaman (route Next.js App Router)
+│       ├── components/    # Komponen UI dan fitur
+│       ├── lib/           # Utility, hooks, API client
+│       └── types/         # TypeScript API types
+├── backend/               # FastAPI
+│   └── app/
+│       ├── api/           # Router endpoint
+│       ├── core/          # Config, security, database, logging
+│       ├── models/        # SQLAlchemy models
+│       ├── schemas/       # Pydantic schemas
+│       ├── services/      # Business logic
+│       └── tasks/         # Celery tasks
+├── ml-service/            # FastAPI untuk inferensi ONNX
+│   └── app/
+│       ├── inference/     # ONNX runner
+│       └── models/        # File .onnx (tidak di-commit)
+├── ml-training/           # Notebook training (local-only, tidak di-commit)
+├── nginx/                 # Konfigurasi reverse proxy
+├── docker-compose.yml     # Stack development
+├── docker-compose.prod.yml# Stack production
+└── .github/workflows/     # CI/CD pipeline
 ```
 
 ---
 
 ## Status Pengembangan
 
-| Phase | Deskripsi | Status |
+| Area | Status | Catatan |
 |---|---|---|
-| **Phase 0** | Foundation & Setup | Selesai |
-| **Phase 1** | MVP Core (Scan & Diagnosa) | Dalam pengerjaan |
-| **Phase 2** | Heatmap & Auth lengkap | Belum mulai |
-| **Phase 3** | Early Warning & Smart Recommendation | Belum mulai |
-| **Phase 4** | Community & Analytics | Belum mulai |
+| Backend API (auth, scans, fields, map, alerts, community, dashboard, admin) | Selesai | Seluruh modul inti |
+| Frontend (scan, history, map, dashboard, fields, community, admin, landing page) | Selesai | Termasuk hardening UX |
+| Celery async worker + alert detection | Selesai | Clustering Haversine, periodik + trigger per scan |
+| ML Service (ONNX runner + mock mode) | Selesai | Mode mock aktif secara default |
+| Google Gemini recommendation | Selesai | Rekomendasi bilingual |
+| Observability (structured logging, health check, coverage) | Selesai | Sprint B hardening |
+| Model ONNX production | Tertunda | Dikembangkan di repo terpisah (USE_MOCK_MODEL=true) |
 
 ---
 

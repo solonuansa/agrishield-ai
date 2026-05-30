@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
+import "leaflet.heat";
 import { formatDateID } from "@/lib/ui";
 import type { HeatmapPoint } from "@/types/api";
 
@@ -24,11 +25,9 @@ function confidenceLabel(confidence: number) {
   return "Rendah";
 }
 
-// Cache icons by discrete confidence buckets to avoid recreating L.divIcon on every render
 const iconCache = new Map<number, L.DivIcon>();
 
 function getDivIcon(confidence: number) {
-  // Round to 2 decimals for cache key — only a few unique values exist
   const key = Math.round(confidence * 100);
   if (iconCache.has(key)) return iconCache.get(key)!;
 
@@ -56,6 +55,41 @@ function FitBounds({ points }: { points: { lat: number; lng: number }[] }) {
     const bounds = L.latLngBounds(points.map((p) => [p.lat, p.lng]));
     map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
   }, [map, points]);
+  return null;
+}
+
+/** Heatmap layer (Leaflet.heat) — overlay kepadatan berdasarkan confidence. */
+function HeatmapLayer({ points }: { points: HeatmapPoint[] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (points.length === 0) return;
+
+    type HeatLatLngTuple = [number, number, number];
+    const heatData: HeatLatLngTuple[] = points.map((p) => [
+      p.lat,
+      p.lng,
+      p.confidence,
+    ]);
+
+    const heat = (L as unknown as { heatLayer: (data: HeatLatLngTuple[], opts: Record<string, unknown>) => L.Layer }).heatLayer(heatData, {
+      radius: 30,
+      blur: 18,
+      maxZoom: 10,
+      max: 1.0,
+      gradient: {
+        0.0: "#15803d",
+        0.5: "#a16207",
+        0.8: "#b91c1c",
+      },
+    });
+
+    heat.addTo(map);
+    return () => {
+      map.removeLayer(heat);
+    };
+  }, [map, points]);
+
   return null;
 }
 
@@ -101,6 +135,7 @@ interface HeatmapMapProps {
 }
 
 export default function HeatmapMap({ points }: HeatmapMapProps) {
+
   if (points.length === 0) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-ink-muted">
@@ -122,6 +157,7 @@ export default function HeatmapMap({ points }: HeatmapMapProps) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FitBounds points={points.map((p) => ({ lat: p.lat, lng: p.lng }))} />
+      <HeatmapLayer points={points} />
       <MarkersLayer points={points} />
     </MapContainer>
   );

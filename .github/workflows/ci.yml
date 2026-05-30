@@ -56,7 +56,7 @@ jobs:
       - name: Lint (ruff)
         run: ruff check app/
 
-      - name: Run tests
+      - name: Run tests with coverage
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/agrishield_test
           REDIS_URL: redis://localhost:6379/0
@@ -64,7 +64,7 @@ jobs:
           ENVIRONMENT: test
           USE_MOCK_MODEL: "true"
           GEMINI_API_KEY: ""
-        run: pytest tests/ -v --tb=short
+        run: pytest tests/ -v --tb=short --cov=app --cov-report=term-missing --cov-fail-under=10
 
   # ── Frontend lint + build ────────────────────────────────────
   frontend:

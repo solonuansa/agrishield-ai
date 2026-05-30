@@ -172,17 +172,25 @@ export default function MapPage() {
   });
 
   const [cropFilter, setCropFilter] = useState<"all" | "rice" | "corn">("all");
+  const [diseaseFilter, setDiseaseFilter] = useState<string>("all");
   const [minConfidence, setMinConfidence] = useState(0);
+  const [pointLimit, setPointLimit] = useState(20);
 
   const allPoints = useMemo(() => heatmap?.points ?? [], [heatmap?.points]);
+
+  const uniqueDiseases = useMemo(() => {
+    const set = new Set(allPoints.map((p) => p.disease));
+    return Array.from(set).sort();
+  }, [allPoints]);
 
   const filteredPoints = useMemo<HeatmapPoint[]>(() => {
     return allPoints.filter((p) => {
       if (cropFilter !== "all" && p.crop_type !== cropFilter) return false;
+      if (diseaseFilter !== "all" && p.disease !== diseaseFilter) return false;
       if (p.confidence < minConfidence) return false;
       return true;
     });
-  }, [allPoints, cropFilter, minConfidence]);
+  }, [allPoints, cropFilter, diseaseFilter, minConfidence]);
 
   const highRisk = useMemo(
     () => allPoints.filter((p) => p.confidence >= 0.85).length,
@@ -248,6 +256,17 @@ export default function MapPage() {
           }
           className="w-32"
         />
+        {uniqueDiseases.length > 0 && (
+          <Select
+            options={[
+              { value: "all", label: "Semua Penyakit" },
+              ...uniqueDiseases.map((d) => ({ value: d, label: d })),
+            ]}
+            value={diseaseFilter}
+            onChange={(e) => setDiseaseFilter(e.target.value)}
+            className="w-44"
+          />
+        )}
         <div className="flex items-center gap-2">
           <span className="text-xs text-ink-muted">Min. keyakinan:</span>
           <input
@@ -305,43 +324,55 @@ export default function MapPage() {
             description="Tidak ada titik yang cocok dengan filter. Ubah filter untuk melihat hasil."
           />
         ) : (
-          <ul className="divide-y divide-cream-darker/60">
-            {filteredPoints.slice(0, 20).map((point) => (
-              <li
-                key={point.scan_id}
-                className="grid gap-2 px-4 py-4 sm:grid-cols-[1.4fr_0.9fr_0.9fr_0.8fr] sm:items-center"
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: confidenceColor(point.confidence) }}
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={diseaseBadgeVariant(point.disease)}>
-                        {point.disease}
-                      </Badge>
-                    </div>
-                    <p className="mt-1 text-xs text-ink-muted">
-                      Scan #{point.scan_id.slice(0, 8)} - {toCropLabel(point.crop_type)}
-                    </p>
-                  </div>
-                </div>
-                <p className="text-xs text-ink-muted">
-                  Lat {point.lat.toFixed(4)}, Lng {point.lng.toFixed(4)}
-                </p>
-                <p className="text-xs text-ink-muted">
-                  Bulan {formatDateID(`${point.month}-01`)}
-                </p>
-                <p
-                  className="text-sm font-semibold"
-                  style={{ color: confidenceColor(point.confidence) }}
+          <div>
+            <ul className="divide-y divide-cream-darker/60">
+              {filteredPoints.slice(0, pointLimit).map((point) => (
+                <li
+                  key={point.scan_id}
+                  className="grid gap-2 px-4 py-4 sm:grid-cols-[1.4fr_0.9fr_0.9fr_0.8fr] sm:items-center"
                 >
-                  {Math.round(point.confidence * 100)}%
-                </p>
-              </li>
-            ))}
-          </ul>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: confidenceColor(point.confidence) }}
+                    />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={diseaseBadgeVariant(point.disease)}>
+                          {point.disease}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-xs text-ink-muted">
+                        Scan #{point.scan_id.slice(0, 8)} - {toCropLabel(point.crop_type)}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-ink-muted">
+                    Lat {point.lat.toFixed(4)}, Lng {point.lng.toFixed(4)}
+                  </p>
+                  <p className="text-xs text-ink-muted">
+                    Bulan {formatDateID(`${point.month}-01`)}
+                  </p>
+                  <p
+                    className="text-sm font-semibold"
+                    style={{ color: confidenceColor(point.confidence) }}
+                  >
+                    {Math.round(point.confidence * 100)}%
+                  </p>
+                </li>
+              ))}
+            </ul>
+            {filteredPoints.length > pointLimit && (
+              <div className="border-t border-cream-darker/60 px-4 py-3 text-center">
+                <button
+                  onClick={() => setPointLimit((prev) => prev + 20)}
+                  className="text-sm font-medium text-forest-700 transition-colors hover:text-clay"
+                >
+                  Muat Lebih Banyak ({filteredPoints.length - pointLimit} tersisa)
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

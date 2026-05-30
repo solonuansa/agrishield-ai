@@ -4,16 +4,13 @@ import logging
 
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api import api_router
 from app.core.config import settings
-
-logging.basicConfig(
-    level=logging.DEBUG if settings.is_development else logging.INFO,
-    format="%(asctime)s — %(name)s — %(levelname)s — %(message)s",
-)
+from app.core.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +21,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# Setup logging terstruktur — pasang middleware request ID paling awal
+setup_logging(app, log_level=settings.log_level)
 
 # CORS
 app.add_middleware(
@@ -52,8 +52,36 @@ async def storage_exception_handler(request: Request, exc: Exception) -> JSONRes
     )
 
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Tangkap 422 validation errors dan kembalikan format konsisten."""
+    errors = []
+    for err in exc.errors():
+        field = ".".join(str(loc) for loc in err.get("loc", []))
+        msg = err.get("msg", "Input tidak valid")
+        errors.append({"field": field, "msg": msg})
+    logger.warning("Validation error pada %s: %s", request.url.path, errors)
+    return JSONResponse(
+        status_code=422,
+        content={
+            "success": False,
+            "detail": "Validasi gagal",
+            "errors": errors,
+        },
+    )
+
+
 @app.on_event("startup")
 async def on_startup():
     logger.info(f"AgriShield API started — environment: {settings.environment}")
     logger.info(f"ML service URL: {settings.ml_service_url}")
     logger.info(f"Mock model: {settings.use_mock_model}")
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    """Graceful shutdown — tutup koneksi yang masih terbuka."""
+    logger.info("AgriShield API shutting down — membersihkan koneksi...")
+    from app.core.database import engine
+    engine.dispose()
+    logger.info("Koneksi database ditutup.")

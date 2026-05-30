@@ -1,15 +1,18 @@
 ﻿"use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Scan, AlertTriangle, CheckCircle2, ClipboardCheck } from "lucide-react";
+import { Scan, AlertTriangle, CheckCircle2, ClipboardCheck, RefreshCw } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatCard } from "@/components/ui/StatCard";
 import { apiGet } from "@/lib/api";
@@ -71,9 +74,12 @@ function DashboardContent() {
     : "Petani";
   const greeting = useMemo(() => getGreeting(), []);
 
+  // Filter bulan
+  const [months, setMonths] = useState("6");
+
   const statsQuery = useQuery({
-    queryKey: ["dashboard-stats"],
-    queryFn: () => apiGet<DashboardStats>("/dashboard/stats", token),
+    queryKey: ["dashboard-stats", months],
+    queryFn: () => apiGet<DashboardStats>(`/dashboard/stats?months=${months}`, token),
     enabled: Boolean(token),
   });
 
@@ -102,12 +108,65 @@ function DashboardContent() {
   const statsLoading = statsQuery.isLoading;
   const scansLoading = scansQuery.isLoading;
 
+  // Hitung trend month-over-month dari timeline
+  const trendArrow = useMemo(() => {
+    if (!stats?.timeline || stats.timeline.length < 2) return undefined;
+    const sorted = [...stats.timeline].sort(
+      (a, b) => a.month.localeCompare(b.month)
+    );
+    const prev = sorted[sorted.length - 2];
+    const curr = sorted[sorted.length - 1];
+    if (curr.count > prev.count) return "up" as const;
+    if (curr.count < prev.count) return "down" as const;
+    return undefined;
+  }, [stats]);
+
+  const trendDisease = useMemo(() => {
+    if (!stats?.timeline || stats.timeline.length < 2) return undefined;
+    const sorted = [...stats.timeline].sort(
+      (a, b) => a.month.localeCompare(b.month)
+    );
+    const prev = sorted[sorted.length - 2];
+    const curr = sorted[sorted.length - 1];
+    if (curr.disease_count > prev.disease_count) return "up" as const;
+    if (curr.disease_count < prev.disease_count) return "down" as const;
+    return undefined;
+  }, [stats]);
+
   return (
     <div className="mx-auto max-w-5xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <PageHeader
         title="Dashboard"
         description={`${greeting}, ${userName}`}
       />
+
+      {/* Filter & Refresh */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <label className="text-xs font-medium text-ink-muted">Periode:</label>
+          <Select
+            options={[
+              { value: "3", label: "3 bulan" },
+              { value: "6", label: "6 bulan" },
+              { value: "12", label: "12 bulan" },
+            ]}
+            value={months}
+            onChange={(e) => setMonths(e.target.value)}
+            className="w-32"
+          />
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            statsQuery.refetch();
+            scansQuery.refetch();
+          }}
+        >
+          <RefreshCw size={14} className="mr-1" />
+          Segarkan
+        </Button>
+      </div>
 
       {isEmpty ? (
         <EmptyState
@@ -129,11 +188,15 @@ function DashboardContent() {
                 label: "Total Scan",
                 value: stats?.total_scans ?? 0,
                 icon: <Scan size={18} />,
+                trend: trendArrow,
+                trendLabel: trendArrow ? "dari bulan sebelumnya" : undefined,
               },
               {
                 label: "Penyakit Terdeteksi",
                 value: stats?.disease_detected ?? 0,
                 icon: <AlertTriangle size={18} />,
+                trend: trendDisease,
+                trendLabel: trendDisease ? "dari bulan sebelumnya" : undefined,
               },
               {
                 label: "Tanaman Sehat",
@@ -154,6 +217,8 @@ function DashboardContent() {
                     label={item.label}
                     value={item.value}
                     icon={item.icon}
+                    trend={item.trend}
+                    trendLabel={item.trendLabel}
                   />
                 )}
               </motion.div>
@@ -167,6 +232,12 @@ function DashboardContent() {
               <h2 className="font-serif text-2xl font-medium text-forest-700">
                 Scan Terakhir
               </h2>
+              <Link
+                href="/history"
+                className="text-sm font-medium text-forest-700 transition-colors hover:text-clay"
+              >
+                Lihat Semua
+              </Link>
             </div>
 
             {scansLoading ? (

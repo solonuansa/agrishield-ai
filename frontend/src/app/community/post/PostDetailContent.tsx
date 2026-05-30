@@ -1,16 +1,21 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { apiGet } from "@/lib/api";
+import { ArrowLeft, Heart } from "lucide-react";
+import { apiGet, apiPost } from "@/lib/api";
+import { getAccessToken, readSession } from "@/lib/auth";
 import { getMockCommunityPostDetailById } from "@/lib/mock-community";
 import { formatDateID } from "@/lib/ui";
 import type { PostDetail } from "@/types/api";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Skeleton, SkeletonLines } from "@/components/ui/Skeleton";
 import { Card } from "@/components/ui/Card";
+import { Textarea } from "@/components/ui/Textarea";
+import { useToast } from "@/lib/hooks/useToast";
 
 function cropLabel(value: PostDetail["crop_type"]) {
   if (value === "rice") return "Padi";
@@ -20,15 +25,23 @@ function cropLabel(value: PostDetail["crop_type"]) {
 
 export default function PostDetailContent() {
   const searchParams = useSearchParams();
+  const toast = useToast();
+  const queryClient = useQueryClient();
   const id = searchParams.get("id");
   const mockPost = id ? getMockCommunityPostDetailById(id) : null;
+  const token = getAccessToken();
+  const session = readSession();
+  const isLoggedIn = Boolean(session?.token);
+
+  const [commentBody, setCommentBody] = useState("");
+  const [commentError, setCommentError] = useState("");
 
   const { data: post, isLoading } = useQuery<PostDetail>({
     queryKey: ["community-post", id],
     queryFn: async () => {
       if (mockPost) return mockPost;
       try {
-        return await apiGet<PostDetail>(`/community/posts/${id}`);
+        return await apiGet<PostDetail>(`/community/posts/${id}`, token);
       } catch {
         if (mockPost) return mockPost;
         throw new Error("Gagal memuat diskusi.");
@@ -38,6 +51,53 @@ export default function PostDetailContent() {
     placeholderData: mockPost ?? undefined,
     retry: false,
   });
+
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      return apiPost<{ liked: boolean }>(`/community/posts/${id}/like`, {}, token);
+    },
+    onMutate: async () => {
+      // Optimistic update
+      await queryClient.cancelQueries({ queryKey: ["community-post", id] });
+      const prev = queryClient.getQueryData<PostDetail>(["community-post", id]);
+      if (prev) {
+        queryClient.setQueryData<PostDetail>(["community-post", id], {
+          ...prev,
+          is_liked: !prev.is_liked,
+          like_count: prev.is_liked ? prev.like_count - 1 : prev.like_count + 1,
+        });
+      }
+    },
+    onError: () => {
+      toast.error("Gagal mengupdate suka.");
+      queryClient.invalidateQueries({ queryKey: ["community-post", id] });
+    },
+  });
+
+  const commentMutation = useMutation({
+    mutationFn: async () => {
+      return apiPost(`/community/posts/${id}/comments`, { body: commentBody.trim() }, token);
+    },
+    onSuccess: () => {
+      setCommentBody("");
+      setCommentError("");
+      toast.success("Komentar ditambahkan.");
+      queryClient.invalidateQueries({ queryKey: ["community-post", id] });
+    },
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : "Gagal menambahkan komentar.";
+      setCommentError(msg);
+    },
+  });
+
+  function handleCommentSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!commentBody.trim()) {
+      setCommentError("Komentar tidak boleh kosong.");
+      return;
+    }
+    commentMutation.mutate();
+  }
 
   if (!id) {
     return (
@@ -93,7 +153,10 @@ export default function PostDetailContent() {
       <article className="mt-8">
         <Card className="p-6">
           <div className="mb-7 space-y-3 border-b border-cream-darker/50 pb-6">
-            <Badge variant="default">{cropLabel(displayPost.crop_type)}</Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="default">{cropLabel(displayPost.crop_type)}</Badge>
+              <Badge variant="info">{displayPost.category}</Badge>
+            </div>
             <h1 className="font-serif text-4xl leading-tight text-forest-700">{displayPost.title}</h1>
             <div className="flex flex-wrap items-center gap-3 text-sm text-ink-muted">
               <span>{displayPost.author.full_name}</span>
@@ -110,9 +173,37 @@ export default function PostDetailContent() {
           )}
 
           <p className="whitespace-pre-line text-base leading-8 text-ink-soft">{displayPost.body}</p>
+
+          {/* Like Button */}
+          <div className="mt-6 flex items-center gap-4 border-t border-cream-darker/50 pt-4">
+            {isLoggedIn ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => likeMutation.mutate()}
+                disabled={mockPost !== null}
+              >
+                <Heart
+                  size={16}
+                  className={`mr-1.5 transition-colors ${
+                    displayPost.is_liked ? "fill-clay text-clay" : ""
+                  }`}
+                />
+                {displayPost.is_liked ? "Disukai" : "Suka"} ({displayPost.like_count})
+              </Button>
+            ) : (
+              <Link href={`/login?next=/community/post/?id=${id}`}>
+                <Button variant="ghost" size="sm">
+                  <Heart size={16} className="mr-1.5" />
+                  Suka ({displayPost.like_count})
+                </Button>
+              </Link>
+            )}
+          </div>
         </Card>
       </article>
 
+      {/* Comments */}
       <section className="mt-12">
         <h2 className="font-serif text-2xl text-forest-700">Komentar</h2>
 
@@ -130,6 +221,32 @@ export default function PostDetailContent() {
               </li>
             ))}
           </ul>
+        )}
+
+        {/* Comment Form */}
+        {isLoggedIn ? (
+          <form onSubmit={handleCommentSubmit} className="mt-8 space-y-4">
+            <Textarea
+              label="Tulis Komentar"
+              placeholder="Bagikan pendapat Anda..."
+              value={commentBody}
+              onChange={(e) => setCommentBody(e.target.value)}
+              rows={3}
+            />
+            {commentError && (
+              <p className="text-sm text-clay-dark" role="alert">{commentError}</p>
+            )}
+            <Button type="submit" disabled={commentMutation.isPending}>
+              {commentMutation.isPending ? "Mengirim..." : "Kirim Komentar"}
+            </Button>
+          </form>
+        ) : (
+          <div className="mt-8 rounded border border-cream-darker bg-cream-dark/30 p-4 text-center text-sm text-ink-muted">
+            <Link href={`/login?next=/community/post/?id=${id}`} className="font-medium text-forest-700 hover:text-clay">
+              Masuk
+            </Link>{" "}
+            untuk menambahkan komentar.
+          </div>
         )}
       </section>
     </div>
