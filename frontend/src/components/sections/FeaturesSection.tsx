@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Activity,
@@ -12,70 +13,92 @@ import {
   Users,
 } from "lucide-react";
 
-const features = [
-  {
-    id: "deteksi",
-    num: "01",
-    title: "Deteksi Cepat",
-    summary: "Foto daun, hasil analisis muncul dalam hitungan detik.",
-    detail:
-      "Petani bisa mengenali gejala penyakit lebih dini dari foto sederhana. Hasilnya disajikan dengan bahasa praktis sehingga mudah langsung ditindaklanjuti di lapangan.",
-    points: ["Cocok untuk pemakaian harian", "Alur pemeriksaan singkat", "Hasil ringkas dan jelas"],
-    icon: Camera,
-  },
-  {
-    id: "saran",
-    num: "02",
-    title: "Panduan Tindakan",
-    summary: "Setiap hasil disertai langkah awal penanganan yang terstruktur.",
-    detail:
-      "AgriShield menampilkan rekomendasi tindakan prioritas agar pengguna tahu langkah paling aman yang perlu dilakukan lebih dulu sebelum kondisi tanaman memburuk.",
-    points: ["Prioritas tindakan", "Mudah diterapkan", "Mengurangi keputusan yang terlambat"],
-    icon: FileText,
-  },
-  {
-    id: "peta",
-    num: "03",
-    title: "Peta Persebaran",
-    summary: "Pantau pola penyakit tanaman berdasarkan area.",
-    detail:
-      "Visual peta membantu komunitas tani dan penyuluh memahami area yang perlu perhatian lebih tinggi, sehingga koordinasi penanganan dapat dilakukan lebih cepat.",
-    points: ["Wawasan berbasis wilayah", "Membantu koordinasi", "Mempermudah prioritas monitoring"],
-    icon: Compass,
-  },
-  {
-    id: "peringatan",
-    num: "04",
-    title: "Peringatan Dini",
-    summary: "Notifikasi saat ada indikasi peningkatan risiko.",
-    detail:
-      "Pengguna mendapat sinyal lebih awal agar dapat menyiapkan pencegahan. Pendekatan ini membantu menjaga kualitas panen melalui tindakan yang tidak terlambat.",
-    points: ["Respon lebih cepat", "Mencegah penyebaran", "Mendukung perencanaan lahan"],
-    icon: BellRing,
-  },
-  {
-    id: "analitik",
-    num: "05",
-    title: "Ringkasan Tren",
-    summary: "Lihat perkembangan kasus dari waktu ke waktu.",
-    detail:
-      "Data perkembangan membantu mengambil keputusan jangka menengah, termasuk evaluasi pola penyakit dan efektivitas tindakan yang sudah dilakukan.",
-    points: ["Evaluasi lebih terukur", "Mudah dibagikan", "Mendukung keputusan berkelanjutan"],
-    icon: Activity,
-  },
-  {
-    id: "komunitas",
-    num: "06",
-    title: "Ruang Komunitas",
-    summary: "Belajar dari pengalaman petani lain di berbagai daerah.",
-    detail:
-      "Forum komunitas mempercepat transfer pengalaman praktis antarpengguna, dari gejala awal sampai strategi lapangan yang relevan.",
-    points: ["Belajar lintas wilayah", "Diskusi solusi nyata", "Memperkuat jejaring petani"],
-    icon: Users,
-  },
-];
+function useFeatures(t: (key: string) => string) {
+  return [
+    {
+      id: "deteksi",
+      num: t("features.detection.num"),
+      title: t("features.detection.title"),
+      summary: t("features.detection.summary"),
+      detail: t("features.detection.detail"),
+      points: [
+        t("features.detection.points.0"),
+        t("features.detection.points.1"),
+        t("features.detection.points.2"),
+      ],
+      icon: Camera,
+    },
+    {
+      id: "saran",
+      num: t("features.guidance.num"),
+      title: t("features.guidance.title"),
+      summary: t("features.guidance.summary"),
+      detail: t("features.guidance.detail"),
+      points: [
+        t("features.guidance.points.0"),
+        t("features.guidance.points.1"),
+        t("features.guidance.points.2"),
+      ],
+      icon: FileText,
+    },
+    {
+      id: "peta",
+      num: t("features.map.num"),
+      title: t("features.map.title"),
+      summary: t("features.map.summary"),
+      detail: t("features.map.detail"),
+      points: [
+        t("features.map.points.0"),
+        t("features.map.points.1"),
+        t("features.map.points.2"),
+      ],
+      icon: Compass,
+    },
+    {
+      id: "peringatan",
+      num: t("features.alert.num"),
+      title: t("features.alert.title"),
+      summary: t("features.alert.summary"),
+      detail: t("features.alert.detail"),
+      points: [
+        t("features.alert.points.0"),
+        t("features.alert.points.1"),
+        t("features.alert.points.2"),
+      ],
+      icon: BellRing,
+    },
+    {
+      id: "analitik",
+      num: t("features.analytics.num"),
+      title: t("features.analytics.title"),
+      summary: t("features.analytics.summary"),
+      detail: t("features.analytics.detail"),
+      points: [
+        t("features.analytics.points.0"),
+        t("features.analytics.points.1"),
+        t("features.analytics.points.2"),
+      ],
+      icon: Activity,
+    },
+    {
+      id: "komunitas",
+      num: t("features.community.num"),
+      title: t("features.community.title"),
+      summary: t("features.community.summary"),
+      detail: t("features.community.detail"),
+      points: [
+        t("features.community.points.0"),
+        t("features.community.points.1"),
+        t("features.community.points.2"),
+      ],
+      icon: Users,
+    },
+  ];
+}
 
 export default function FeaturesSection() {
+  const { t } = useTranslation();
+  const features = useFeatures(t);
   const [activeId, setActiveId] = useState(features[0].id);
   const reduceMotion = useReducedMotion();
 
@@ -88,13 +111,13 @@ export default function FeaturesSection() {
     <section id="fitur" className="bg-cream py-12 sm:py-14 lg:py-16">
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="mb-10 lg:mb-12">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.17em] text-clay">Fitur Utama</p>
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.17em] text-clay">{t("features.sectionTitle")}</p>
           <h2 className="max-w-2xl font-serif text-4xl font-semibold leading-[1.03] text-forest-700 sm:text-5xl">
-            Dirancang untuk membantu keputusan
-            <span className="italic text-forest-600"> lebih cepat di lapangan</span>.
+            {t("features.sectionHeading")}
+            <span className="italic text-forest-600"> {t("features.sectionHeadingEmphasis")}</span>.
           </h2>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-ink-muted lg:text-lg">
-            Pilih fitur yang ingin kamu lihat. Setiap bagian dibuat agar alur kerja pengguna tetap sederhana dari deteksi hingga tindak lanjut.
+            {t("features.sectionDesc")}
           </p>
         </div>
 
@@ -167,7 +190,7 @@ export default function FeaturesSection() {
                   className="relative"
                 >
                   <p className="text-sm font-semibold uppercase tracking-[0.16em] text-clay-light">
-                    Fitur {activeFeature.num}
+                    {t("features.sectionTitle")} {activeFeature.num}
                   </p>
                   <h3 className="mt-3 max-w-lg font-serif text-4xl font-semibold leading-[0.98] text-cream sm:text-5xl">
                     {activeFeature.title}
@@ -189,7 +212,7 @@ export default function FeaturesSection() {
                     href="/scan"
                     className="mt-7 inline-flex items-center justify-center border border-cream/35 px-5 py-2.5 text-sm font-semibold tracking-[0.06em] text-cream transition-colors hover:border-cream hover:bg-cream/10"
                   >
-                    Mulai dari Scan
+                    {t("features.cta")}
                   </Link>
                 </motion.div>
               </AnimatePresence>

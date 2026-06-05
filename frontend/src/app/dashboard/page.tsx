@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Scan, AlertTriangle, CheckCircle2, ClipboardCheck, RefreshCw } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -36,12 +37,12 @@ const DashboardCharts = dynamic(
   }
 );
 
-function getGreeting(): string {
+function getGreeting(t: (key: string) => string): string {
   const hour = new Date().getHours();
-  if (hour < 11) return "Selamat Pagi";
-  if (hour < 15) return "Selamat Siang";
-  if (hour < 18) return "Selamat Sore";
-  return "Selamat Malam";
+  if (hour < 11) return t("dashboard.greetingMorning");
+  if (hour < 15) return t("dashboard.greetingAfternoon");
+  if (hour < 18) return t("dashboard.greetingEvening");
+  return t("dashboard.greetingNight");
 }
 
 function firstName(fullName: string): string {
@@ -57,14 +58,15 @@ function getStatusVariant(
   return "success";
 }
 
-function getStatusLabel(scan: ScanResponse): string {
-  if (scan.status === "failed") return "Gagal";
-  if (scan.status === "pending" || scan.status === "processing") return "Diproses";
+function getStatusLabel(scan: ScanResponse, t: (key: string) => string): string {
+  if (scan.status === "failed") return t("scan.statusFailed_label");
+  if (scan.status === "pending" || scan.status === "processing") return t("dashboard.processing");
   if (scan.result?.detected_disease) return scan.result.detected_disease;
   return "Sehat";
 }
 
 function DashboardContent() {
+  const { t } = useTranslation();
   const token = getAccessToken();
   const router = useRouter();
   const session = readSession();
@@ -72,7 +74,7 @@ function DashboardContent() {
   const userName = session?.user?.full_name
     ? firstName(session.user.full_name)
     : "Petani";
-  const greeting = useMemo(() => getGreeting(), []);
+  const greeting = useMemo(() => getGreeting(t), []);
 
   // Filter bulan
   const [months, setMonths] = useState("6");
@@ -94,13 +96,13 @@ function DashboardContent() {
 
   useEffect(() => {
     if (scansQuery.isError) {
-      toast.error("Gagal memuat riwayat scan.");
+      toast.error(t("dashboard.loadError"));
     }
   }, [scansQuery.isError]);
 
   useEffect(() => {
     if (statsQuery.isError) {
-      toast.error("Gagal memuat statistik dashboard.");
+      toast.error(t("dashboard.loadErrorStats"));
     }
   }, [statsQuery.isError]);
 
@@ -136,19 +138,19 @@ function DashboardContent() {
   return (
     <div className="mx-auto max-w-5xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <PageHeader
-        title="Dashboard"
+        title={t("dashboard.title")}
         description={`${greeting}, ${userName}`}
       />
 
       {/* Filter & Refresh */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <label className="text-xs font-medium text-ink-muted">Periode:</label>
+          <label className="text-xs font-medium text-ink-muted">{t("dashboard.period")}</label>
           <Select
             options={[
-              { value: "3", label: "3 bulan" },
-              { value: "6", label: "6 bulan" },
-              { value: "12", label: "12 bulan" },
+              { value: "3", label: t("dashboard.months3") },
+              { value: "6", label: t("dashboard.months6") },
+              { value: "12", label: t("dashboard.months12") },
             ]}
             value={months}
             onChange={(e) => setMonths(e.target.value)}
@@ -164,15 +166,15 @@ function DashboardContent() {
           }}
         >
           <RefreshCw size={14} className="mr-1" />
-          Segarkan
+          {t("dashboard.refresh")}
         </Button>
       </div>
 
       {isEmpty ? (
         <EmptyState
-          title="Belum Ada Scan"
-          description="Mulai scan pertama Anda untuk melihat statistik di sini."
-          actionLabel="Mulai Scan"
+          title={t("dashboard.emptyTitle")}
+          description={t("dashboard.emptyDesc")}
+          actionLabel={t("dashboard.emptyAction")}
           onAction={() => router.push("/scan")}
         />
       ) : (
@@ -185,26 +187,26 @@ function DashboardContent() {
           >
             {[
               {
-                label: "Total Scan",
+                label: t("dashboard.totalScans"),
                 value: stats?.total_scans ?? 0,
                 icon: <Scan size={18} />,
                 trend: trendArrow,
-                trendLabel: trendArrow ? "dari bulan sebelumnya" : undefined,
+                trendLabel: trendArrow ? t("dashboard.fromPreviousMonth") : undefined,
               },
               {
-                label: "Penyakit Terdeteksi",
+                label: t("dashboard.diseaseDetected"),
                 value: stats?.disease_detected ?? 0,
                 icon: <AlertTriangle size={18} />,
                 trend: trendDisease,
-                trendLabel: trendDisease ? "dari bulan sebelumnya" : undefined,
+                trendLabel: trendDisease ? t("dashboard.fromPreviousMonth") : undefined,
               },
               {
-                label: "Tanaman Sehat",
+                label: t("dashboard.healthyPlants"),
                 value: stats?.healthy_detected ?? 0,
                 icon: <CheckCircle2 size={18} />,
               },
               {
-                label: "Selesai Diproses",
+                label: t("dashboard.completedScans"),
                 value: stats?.completed_scans ?? 0,
                 icon: <ClipboardCheck size={18} />,
               },
@@ -230,13 +232,13 @@ function DashboardContent() {
           <div className="mt-12">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="font-serif text-2xl font-medium text-forest-700">
-                Scan Terakhir
+                {t("dashboard.recentScans")}
               </h2>
               <Link
                 href="/history"
                 className="text-sm font-medium text-forest-700 transition-colors hover:text-clay"
               >
-                Lihat Semua
+                {t("dashboard.viewAll")}
               </Link>
             </div>
 
@@ -247,11 +249,11 @@ function DashboardContent() {
                 ))}
               </div>
             ) : scansQuery.isError ? (
-              <p className="text-sm text-clay-dark">Gagal memuat riwayat scan.</p>
+              <p className="text-sm text-clay-dark">{t("dashboard.loadError")}</p>
             ) : scans.length === 0 ? (
               <EmptyState
-                title="Belum Ada Riwayat"
-                description="Riwayat scan Anda akan muncul di sini."
+                title={t("dashboard.emptyHistory")}
+                description={t("dashboard.emptyHistoryDesc")}
               />
             ) : (
               <div className="divide-y divide-cream-darker/40">
@@ -265,7 +267,7 @@ function DashboardContent() {
                         {scan.id.slice(0, 8)}
                       </span>
                       <span className="text-sm text-ink-soft">
-                        {scan.result?.detected_disease || "Sedang diproses"}
+                        {scan.result?.detected_disease || t("dashboard.processing")}
                       </span>
                     </div>
                     <div className="flex items-center gap-6">
@@ -273,7 +275,7 @@ function DashboardContent() {
                         {formatDateID(scan.created_at)}
                       </span>
                       <Badge variant={getStatusVariant(scan)}>
-                        {getStatusLabel(scan)}
+                        {getStatusLabel(scan, t)}
                       </Badge>
                       <span className="text-sm font-medium text-forest-700">
                         {scan.result

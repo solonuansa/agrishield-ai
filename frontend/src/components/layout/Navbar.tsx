@@ -3,24 +3,36 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { clearSession, readSession } from "@/lib/auth";
 import { useToast } from "@/lib/hooks/useToast";
 
-const links = [
-  { href: "/", label: "Home" },
-  { href: "/scan", label: "Scan" },
-  { href: "/map", label: "Peta" },
-  { href: "/community", label: "Komunitas" },
-  { href: "/dashboard", label: "Dashboard" },
+const linkDefs = [
+  { href: "/", key: "home" },
+  { href: "/scan", key: "scan" },
+  { href: "/map", key: "map" },
+  { href: "/community", key: "community" },
+  { href: "/dashboard", key: "dashboard" },
+];
+
+const languages = [
+  { code: "id", label: "ID" },
+  { code: "en", label: "EN" },
 ];
 
 export default function Navbar() {
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const session = readSession();
   const toast = useToast();
+
+  const links = linkDefs.map((link) => ({
+    ...link,
+    label: t(`nav.${link.key}`),
+  }));
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,7 +45,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     clearSession();
-    toast.success("Anda telah keluar.");
+    toast.success(t("nav.logoutSuccess"));
     setTimeout(() => {
       if (typeof window !== "undefined") {
         window.location.replace("/");
@@ -45,8 +57,14 @@ export default function Navbar() {
     if (href === "/") {
       return pathname === "/";
     }
-
     return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const currentLang = i18n.language?.startsWith("en") ? "en" : "id";
+
+  const switchLanguage = (code: string) => {
+    i18n.changeLanguage(code);
+    document.documentElement.lang = code;
   };
 
   return (
@@ -89,22 +107,41 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2.5 md:flex">
+          {/* Language switcher */}
+          <div className="mr-1 flex items-center gap-0.5 rounded-full border border-cream-darker p-0.5">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => switchLanguage(lang.code)}
+                className={`rounded-full px-2 py-1 text-[0.65rem] font-bold uppercase tracking-wider transition-colors ${
+                  currentLang === lang.code
+                    ? "bg-forest-700 text-cream"
+                    : "text-ink-muted hover:text-ink"
+                }`}
+                aria-label={`Switch to ${lang.label}`}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+
           {session ? (
             <>
               <Link href="/dashboard" className="rounded-full border border-cream-darker px-3.5 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:border-ink-muted hover:text-ink">
                 {session.user.full_name.split(" ")[0]}
               </Link>
               <button type="button" onClick={handleLogout} className="rounded-full bg-clay px-3.5 py-1.5 text-xs font-semibold text-cream transition-colors hover:bg-clay-dark">
-                Keluar
+                {t("nav.logout")}
               </button>
             </>
           ) : (
             <>
               <Link href="/login" className="rounded-full border border-cream-darker px-3.5 py-1.5 text-xs font-semibold text-ink-soft transition-colors hover:border-ink-muted hover:text-ink">
-                Masuk
+                {t("nav.login")}
               </Link>
               <Link href="/login?mode=register" className="rounded-full bg-forest-700 px-3.5 py-1.5 text-xs font-semibold text-cream transition-colors hover:bg-forest-800">
-                Daftar
+                {t("nav.register")}
               </Link>
             </>
           )}
@@ -113,7 +150,7 @@ export default function Navbar() {
         <button
           onClick={() => setOpen(!open)}
           className="rounded p-2 text-ink-soft md:hidden"
-          aria-label="Menu"
+          aria-label={t("nav.menu")}
           aria-expanded={open}
           aria-controls="mobile-menu"
         >
@@ -149,26 +186,46 @@ export default function Navbar() {
                   </Link>
                 ))}
                 <div className="mt-2 flex flex-col gap-3 border-t border-cream-darker/50 pt-4">
+                  {/* Language switcher mobile */}
+                  <div className="flex gap-1 rounded-full bg-cream-200/60 p-0.5 self-start">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => {
+                          switchLanguage(lang.code);
+                          setOpen(false);
+                        }}
+                        className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors ${
+                          currentLang === lang.code
+                            ? "bg-forest-700 text-cream"
+                            : "text-ink-muted hover:text-ink"
+                        }`}
+                      >
+                        {lang.label}
+                      </button>
+                    ))}
+                  </div>
                   {session ? (
                     <>
                       <Link href="/dashboard" onClick={() => setOpen(false)} className="btn-secondary">
-                        Dashboard
+                        {t("nav.dashboard")}
                       </Link>
                       <button
                         type="button"
                         onClick={handleLogout}
                         className="btn-primary bg-clay hover:bg-clay-dark"
                       >
-                        Keluar
+                        {t("nav.logout")}
                       </button>
                     </>
                   ) : (
                     <>
                       <Link href="/login" onClick={() => setOpen(false)} className="btn-secondary">
-                        Masuk
+                        {t("nav.login")}
                       </Link>
                       <Link href="/login?mode=register" onClick={() => setOpen(false)} className="btn-primary">
-                        Daftar
+                        {t("nav.register")}
                       </Link>
                     </>
                   )}

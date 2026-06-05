@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   List,
@@ -32,11 +33,13 @@ const HeatmapMap = dynamic(() => import("@/components/map/HeatmapMap"), {
   ),
 });
 
-const CROP_OPTIONS = [
-  { value: "all", label: "Semua" },
-  { value: "rice", label: "Padi" },
-  { value: "corn", label: "Jagung" },
-] as const;
+function useCropOptions(t: (key: string) => string) {
+  return [
+    { value: "all", label: t("map.allCrops") },
+    { value: "rice", label: t("crop.rice") },
+    { value: "corn", label: t("crop.corn") },
+  ] as const;
+}
 
 const DUMMY_HEATMAP: HeatmapResponse = {
   total: 10,
@@ -134,8 +137,8 @@ const DUMMY_HEATMAP: HeatmapResponse = {
   ],
 };
 
-function toCropLabel(value: string) {
-  return value === "rice" ? "Padi" : "Jagung";
+function toCropLabel(value: string, t: (key: string) => string) {
+  return value === "rice" ? t("crop.rice") : t("crop.corn");
 }
 
 function confidenceColor(confidence: number) {
@@ -156,6 +159,8 @@ function diseaseBadgeVariant(disease: string): BadgeVariant {
 }
 
 export default function MapPage() {
+  const { t, i18n } = useTranslation();
+  const CROP_OPTIONS = useCropOptions(t);
   const { data: heatmap, isLoading } = useQuery<HeatmapResponse>({
     queryKey: ["heatmap"],
     queryFn: async () => {
@@ -204,8 +209,8 @@ export default function MapPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <PageHeader
-        title="Peta Sebaran"
-        description="Titik berikut berasal dari hasil scan dalam 6 bulan terakhir. Gunakan data ini untuk memantau area rawan lebih dini."
+        title={t("map.title")}
+        description={t("map.description")}
       />
 
       <motion.div
@@ -216,14 +221,14 @@ export default function MapPage() {
       >
         <motion.div variants={staggerItem}>
           <StatCard
-            label="Titik Laporan"
+            label={t("map.reportPoints")}
             value={allPoints.length}
             icon={<MapPin size={18} />}
           />
         </motion.div>
         <motion.div variants={staggerItem}>
           <StatCard
-            label="Risiko Tinggi"
+            label={t("map.highRisk")}
             value={highRisk}
             icon={
               <TriangleAlert
@@ -236,7 +241,7 @@ export default function MapPage() {
         </motion.div>
         <motion.div variants={staggerItem}>
           <StatCard
-            label="Klaster Unik"
+            label={t("map.uniqueClusters")}
             value={provinces}
             icon={<Compass size={18} />}
           />
@@ -246,7 +251,7 @@ export default function MapPage() {
       <div className="mt-6 flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-ink-muted" />
-          <span className="text-sm text-ink-soft">Filter:</span>
+          <span className="text-sm text-ink-soft">{t("map.filter")}</span>
         </div>
         <Select
           options={[...CROP_OPTIONS]}
@@ -259,7 +264,7 @@ export default function MapPage() {
         {uniqueDiseases.length > 0 && (
           <Select
             options={[
-              { value: "all", label: "Semua Penyakit" },
+              { value: "all", label: t("map.allDiseases") },
               ...uniqueDiseases.map((d) => ({ value: d, label: d })),
             ]}
             value={diseaseFilter}
@@ -268,7 +273,7 @@ export default function MapPage() {
           />
         )}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-ink-muted">Min. keyakinan:</span>
+          <span className="text-xs text-ink-muted">{t("map.minConfidence")}</span>
           <input
             type="range"
             min={0}
@@ -286,9 +291,9 @@ export default function MapPage() {
       <div className="mt-6 overflow-hidden rounded border border-cream-darker">
         <div className="flex items-center gap-2 border-b border-cream-darker px-4 py-3 text-sm font-medium text-ink-soft">
           <MapPin className="h-4 w-4 text-forest-700" />
-          Peta sebaran
+          {t("map.mapTitle")}
           <span className="ml-auto text-xs text-ink-muted">
-            Menampilkan {filteredPoints.length} titik
+            {t("map.showingPoints", { count: filteredPoints.length })}
           </span>
         </div>
         {isLoading ? (
@@ -297,8 +302,8 @@ export default function MapPage() {
           <div className="flex h-[28rem] items-center justify-center">
             <EmptyState
               icon={<MapPin size={32} />}
-              title="Belum Ada Data"
-              description="Data peta belum tersedia. Jalankan scan dengan GPS aktif untuk menambahkan titik baru."
+              title={t("map.noDataTitle")}
+              description={t("map.noDataDesc")}
             />
           </div>
         ) : (
@@ -311,7 +316,7 @@ export default function MapPage() {
       <div className="mt-8 overflow-hidden rounded border border-cream-darker bg-cream-dark/40">
         <div className="flex items-center gap-2 border-b border-cream-darker px-4 py-3 text-sm font-medium text-ink-soft">
           <List className="h-4 w-4 text-forest-700" />
-          Daftar titik sebaran terbaru
+          {t("map.listTitle")}
         </div>
         {isLoading ? (
           <div className="px-4 py-10">
@@ -320,8 +325,8 @@ export default function MapPage() {
         ) : filteredPoints.length === 0 ? (
           <EmptyState
             icon={<TriangleAlert size={32} />}
-            title="Tidak Ada Titik"
-            description="Tidak ada titik yang cocok dengan filter. Ubah filter untuk melihat hasil."
+            title={t("map.noPointsTitle")}
+            description={t("map.noPointsDesc")}
           />
         ) : (
           <div>
@@ -343,7 +348,7 @@ export default function MapPage() {
                         </Badge>
                       </div>
                       <p className="mt-1 text-xs text-ink-muted">
-                        Scan #{point.scan_id.slice(0, 8)} - {toCropLabel(point.crop_type)}
+                        {t("map.scanId", { id: point.scan_id.slice(0, 8) })} - {toCropLabel(point.crop_type, t)}
                       </p>
                     </div>
                   </div>
@@ -351,7 +356,7 @@ export default function MapPage() {
                     Lat {point.lat.toFixed(4)}, Lng {point.lng.toFixed(4)}
                   </p>
                   <p className="text-xs text-ink-muted">
-                    Bulan {formatDateID(`${point.month}-01`)}
+                    {formatDateID(`${point.month}-01`, i18n.language?.startsWith("en") ? "en-US" : "id-ID")}
                   </p>
                   <p
                     className="text-sm font-semibold"
@@ -368,7 +373,7 @@ export default function MapPage() {
                   onClick={() => setPointLimit((prev) => prev + 20)}
                   className="text-sm font-medium text-forest-700 transition-colors hover:text-clay"
                 >
-                  Muat Lebih Banyak ({filteredPoints.length - pointLimit} tersisa)
+                  {t("map.loadMore", { count: filteredPoints.length - pointLimit })}
                 </button>
               </div>
             )}

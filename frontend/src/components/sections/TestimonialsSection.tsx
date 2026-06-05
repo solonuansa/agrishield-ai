@@ -1,30 +1,10 @@
 ﻿"use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Quote } from "lucide-react";
 import { fadeUp, easing, duration } from "@/lib/motion";
-
-const testimonials = [
-  {
-    quote:
-      "Sejak pakai AgriShield, saya bisa deteksi hawar daun lebih awal. Tanaman saya terselamatkan dan hasil panen malah naik 20%.",
-    name: "Pak Sutrisno",
-    role: "Petani Padi, Jawa Tengah",
-  },
-  {
-    quote:
-      "Aplikasi ini sangat membantu kami di daerah terpencil. Tidak perlu jauh-jauh ke pusat pertanian cuma untuk tanya penyakit tanaman.",
-    name: "Bu Maria",
-    role: "Petani Jagung, NTT",
-  },
-  {
-    quote:
-      "Fitur peta sebarannya luar biasa. Kami bisa koordinasi dengan petani lain di desa sekitar untuk cegah wabah menyebar.",
-    name: "Pak Ahmad",
-    role: "Ketua Kelompok Tani, Sumatera Selatan",
-  },
-];
 
 function getInitials(name: string) {
   return name
@@ -40,6 +20,14 @@ const slideVariants = {
 };
 
 export default function TestimonialsSection() {
+  const { t } = useTranslation();
+
+  const testimonials = [
+    { quote: t("testimonials.quote1"), name: t("testimonials.author1"), role: t("testimonials.role1") },
+    { quote: t("testimonials.quote2"), name: t("testimonials.author2"), role: t("testimonials.role2") },
+    { quote: t("testimonials.quote3"), name: t("testimonials.author3"), role: t("testimonials.role3") },
+  ];
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const prefersReducedMotion = useReducedMotion();
@@ -88,7 +76,7 @@ export default function TestimonialsSection() {
     else if (info.offset.x > 50) prev();
   };
 
-  const t = testimonials[currentIndex];
+  const activeTestimonial = testimonials[currentIndex];
 
   return (
     <section className="bg-cream-dark py-8 sm:py-10 lg:py-12">
@@ -101,10 +89,10 @@ export default function TestimonialsSection() {
           className="mb-6"
         >
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-clay">
-            Testimoni
+            {t("testimonials.sectionTitle")}
           </p>
           <h2 className="font-serif text-4xl sm:text-5xl font-semibold text-forest-700 leading-[1.05] max-w-lg">
-            Apa kata <span className="italic">petani</span>.
+            {t("testimonials.title")} <span className="italic">{t("testimonials.titleEmphasis")}</span>{t("testimonials.title2")}
           </h2>
         </motion.div>
 
@@ -131,17 +119,17 @@ export default function TestimonialsSection() {
             >
               <Quote className="h-6 w-6 text-clay/30 mb-3" strokeWidth={1} />
               <blockquote className="font-serif text-xl sm:text-2xl text-forest-700 leading-snug mb-4">
-                {t.quote}
+                {activeTestimonial.quote}
               </blockquote>
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center bg-forest-700 text-sm font-semibold text-cream">
-                  {getInitials(t.name)}
+                  {getInitials(activeTestimonial.name)}
                 </div>
                 <div>
                   <p className="text-base font-medium text-ink-soft">
-                    {t.name}
+                    {activeTestimonial.name}
                   </p>
-                  <p className="text-sm text-ink-muted">{t.role}</p>
+                  <p className="text-sm text-ink-muted">{activeTestimonial.role}</p>
                 </div>
               </div>
             </motion.div>
@@ -155,7 +143,7 @@ export default function TestimonialsSection() {
                 className={`h-2.5 w-2.5 rounded-full transition-colors ${
                   index === currentIndex ? "bg-clay-500" : "bg-cream-300"
                 }`}
-                aria-label={`Testimoni ${index + 1}`}
+                aria-label={`${t("testimonials.slideLabel")} ${index + 1}`}
               />
             ))}
           </div>

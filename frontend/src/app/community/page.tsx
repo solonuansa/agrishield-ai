@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import { apiGet } from "@/lib/api";
 import { getAccessToken, readSession } from "@/lib/auth";
@@ -19,22 +20,26 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import Pagination from "@/components/ui/Pagination";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
-const CATEGORY_OPTIONS = [
-  { value: "all", label: "Semua" },
-  { value: "question", label: "Pertanyaan" },
-  { value: "experience", label: "Pengalaman" },
-  { value: "tips", label: "Tips" },
-] as const;
+function useCategoryOptions(t: (key: string) => string) {
+  return [
+    { value: "all", label: t("community.allCategories") },
+    { value: "question", label: t("community.categoryQuestion") },
+    { value: "experience", label: t("community.categoryExperience") },
+    { value: "tips", label: t("community.categoryTips") },
+  ] as const;
+}
 
 const PER_PAGE = 15;
 
-function cropLabel(value: CommunityPost["crop_type"]) {
-  if (value === "rice") return "Padi";
-  if (value === "corn") return "Jagung";
-  return "Umum";
+function cropLabel(value: CommunityPost["crop_type"], t: (key: string) => string) {
+  if (value === "rice") return t("crop.rice");
+  if (value === "corn") return t("crop.corn");
+  return t("crop.general");
 }
 
 export default function CommunityPage() {
+  const { t } = useTranslation();
+  const CATEGORY_OPTIONS = useCategoryOptions(t);
   const router = useRouter();
   const session = readSession();
   const token = getAccessToken();
@@ -91,11 +96,11 @@ export default function CommunityPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
       <PageHeader
-        title="Komunitas"
-        description="Pelajari pengalaman lapangan, pertanyaan gejala, dan tips pencegahan dari sesama petani."
+        title={t("community.title")}
+        description={t("community.description")}
         action={
           <Link href={isLoggedIn ? "/community/post/new" : "/login?next=/community"}>
-            <Button>Buat Diskusi</Button>
+            <Button>{t("community.createPost")}</Button>
           </Link>
         }
       />
@@ -106,7 +111,7 @@ export default function CommunityPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
           <input
             type="text"
-            placeholder="Cari diskusi..."
+            placeholder={t("community.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="field-input w-full pl-9 pr-3"
@@ -138,20 +143,20 @@ export default function CommunityPage() {
         <div>
           {usingMockData && (
             <div className="mb-4 rounded border border-clay/25 bg-clay/10 px-4 py-3 text-sm text-clay-dark">
-              Menampilkan data diskusi contoh (mock) karena data komunitas belum tersedia dari server.
+              {t("community.mockBanner")}
             </div>
           )}
 
           {search.trim() && filteredPosts.length === 0 ? (
             <EmptyState
-              title="Tidak Ditemukan"
-              description={`Tidak ada diskusi dengan kata "${search}".`}
+              title={t("community.notFoundTitle")}
+              description={t("community.notFoundDesc", { query: search })}
             />
           ) : displayedPosts.length === 0 ? (
             <EmptyState
-              title="Belum ada diskusi"
-              description="Jadilah yang pertama memulai diskusi di komunitas."
-              actionLabel="Buat Diskusi"
+              title={t("community.emptyTitle")}
+              description={t("community.emptyDesc")}
+              actionLabel={t("community.emptyAction")}
               onAction={() => router.push(isLoggedIn ? "/community/post/new" : "/login?next=/community")}
             />
           ) : (
@@ -164,13 +169,13 @@ export default function CommunityPage() {
                         <div className="mb-2 flex flex-wrap items-center gap-3 text-xs text-ink-muted">
                           {post.is_pinned && (
                             <span className="rounded bg-clay/15 px-1.5 py-0.5 text-[0.65rem] font-medium text-clay-dark">
-                              Disematkan
+                              {t("community.pinned")}
                             </span>
                           )}
-                          <Badge variant="default">{cropLabel(post.crop_type)}</Badge>
+                          <Badge variant="default">{cropLabel(post.crop_type, t)}</Badge>
                           <Badge variant="info">{post.category}</Badge>
-                          <span>{post.comment_count} balasan</span>
-                          <span>{post.like_count} suka</span>
+                          <span>{t("community.replies", { count: post.comment_count })}</span>
+                          <span>{t("community.likes", { count: post.like_count })}</span>
                           <span>{formatDateID(post.created_at)}</span>
                         </div>
                         <h3 className="font-serif text-2xl leading-snug text-forest-700 transition-colors group-hover:text-clay">
@@ -180,7 +185,7 @@ export default function CommunityPage() {
                           {post.body}
                         </p>
                         <p className="mt-2 text-sm text-ink-soft">
-                          oleh {post.author.full_name}
+                          {t("community.by")} {post.author.full_name}
                         </p>
                       </Card>
                     </Link>

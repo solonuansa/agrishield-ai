@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, Leaf, Shield, Sprout } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiPost, ApiError } from "@/lib/api";
@@ -29,6 +30,7 @@ function tabClass(active: boolean): string {
 }
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const toast = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
@@ -59,12 +61,12 @@ export default function LoginPage() {
     setFieldErrors({});
 
     if (mode === "register" && fullName.trim().length < 3) {
-      setFieldErrors({ fullName: "Nama minimal 3 karakter." });
+      setFieldErrors({ fullName: t("login.nameTooShort") });
       return;
     }
 
     if (password.length < 8) {
-      setFieldErrors({ password: "Password minimal 8 karakter." });
+      setFieldErrors({ password: t("login.passwordTooShort") });
       return;
     }
 
@@ -86,7 +88,7 @@ export default function LoginPage() {
       });
 
       toast.success(
-        mode === "login" ? "Berhasil masuk!" : "Akun berhasil dibuat!",
+        mode === "login" ? t("login.loginSuccess") : t("login.registerSuccess"),
       );
 
       if (typeof window !== "undefined") {
@@ -98,7 +100,7 @@ export default function LoginPage() {
       if (error instanceof ApiError) {
         toast.error(error.message);
       } else {
-        toast.error("Terjadi kesalahan. Coba lagi.");
+        toast.error(t("common.error"));
       }
     } finally {
       setIsSubmitting(false);
@@ -118,10 +120,10 @@ export default function LoginPage() {
           {/* ---- Tab Pill Toggle ---- */}
           <div className="mb-10 flex gap-1 rounded-full bg-cream-200/60 p-1">
             <Link href="/login" className={tabClass(mode === "login")}>
-              Masuk
+              {t("login.login")}
             </Link>
             <Link href="/login?mode=register" className={tabClass(mode === "register")}>
-              Daftar
+              {t("login.register")}
             </Link>
           </div>
 
@@ -137,7 +139,7 @@ export default function LoginPage() {
                 transition={{ duration: 0.25, ease: "easeInOut" }}
                 className="section-kicker"
               >
-                {mode === "login" ? "Masuk" : "Daftar"}
+                {mode === "login" ? t("login.login") : t("login.register")}
               </motion.p>
             </AnimatePresence>
 
@@ -152,8 +154,8 @@ export default function LoginPage() {
                 className="page-title max-w-[18ch]"
               >
                 {mode === "login"
-                  ? "Selamat datang kembali."
-                  : "Bergabung dengan AgriShield."}
+                  ? t("login.loginTitle")
+                  : t("login.registerTitle")}
               </motion.h1>
             </AnimatePresence>
           </div>
@@ -170,40 +172,40 @@ export default function LoginPage() {
                   exit="hidden"
                   transition={{ duration: 0.25, ease: "easeInOut" }}
                 >
-                  <Input
-                    id="fullName"
-                    label="Nama Lengkap"
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(event) => setFullName(event.target.value)}
-                    placeholder="Nama Anda"
-                    error={fieldErrors.fullName}
-                  />
+                    <Input
+                      id="fullName"
+                      label={t("login.fullName")}
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(event) => setFullName(event.target.value)}
+                      placeholder={t("login.fullNamePlaceholder")}
+                      error={fieldErrors.fullName}
+                    />
                 </motion.div>
               )}
             </AnimatePresence>
 
             <Input
               id="email"
-              label="Email"
+              label={t("login.email")}
               type="email"
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="nama@email.com"
+              placeholder={t("login.emailPlaceholder")}
               error={fieldErrors.email}
             />
 
             <div className="relative">
               <Input
                 id="password"
-                label="Kata Sandi"
+                label={t("login.password")}
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Minimal 8 karakter"
+                placeholder={t("login.passwordPlaceholder")}
                 className="pr-10"
                 error={fieldErrors.password}
               />
@@ -212,7 +214,7 @@ export default function LoginPage() {
                 onClick={() => setShowPassword((value) => !value)}
                 className="absolute right-2 top-[2.8rem] -translate-y-1/2 rounded p-1 text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest-600"
                 aria-label={
-                  showPassword ? "Sembunyikan password" : "Tampilkan password"
+                  showPassword ? t("login.hidePassword") : t("login.showPassword")
                 }
               >
                 {showPassword ? (
@@ -239,13 +241,13 @@ export default function LoginPage() {
                       type="checkbox"
                       className="h-4 w-4 rounded border-cream-darker text-forest-600 focus:ring-forest-500"
                     />
-                    Ingat saya
+                    {t("login.rememberMe")}
                   </label>
                   <Link
                     href="#"
                     className="text-sm text-ink-muted hover:text-forest-700 transition-colors"
                   >
-                    Lupa sandi?
+                    {t("login.forgotPassword")}
                   </Link>
                 </motion.div>
               )}
@@ -264,7 +266,7 @@ export default function LoginPage() {
               disabled={isSubmitting}
               className="mt-2 w-full"
             >
-              {mode === "login" ? "Masuk" : "Daftar Gratis"}
+              {mode === "login" ? t("login.loginButton") : t("login.registerButton")}
             </Button>
           </form>
 
@@ -272,22 +274,22 @@ export default function LoginPage() {
           <div className="mt-8 border-t border-cream-darker/40 pt-6 text-base text-ink-muted">
             {mode === "login" ? (
               <>
-                Belum punya akun?{" "}
+                {t("login.noAccount")}{" "}
                 <Link
                   href="/login?mode=register"
                   className="font-medium text-forest-700 hover:text-forest-800 transition-colors"
                 >
-                  Daftar gratis
+                  {t("login.registerLink")}
                 </Link>
               </>
             ) : (
               <>
-                Sudah punya akun?{" "}
+                {t("login.hasAccount")}{" "}
                 <Link
                   href="/login"
                   className="font-medium text-forest-700 hover:text-forest-800 transition-colors"
                 >
-                  Masuk
+                  {t("login.loginLink")}
                 </Link>
               </>
             )}
@@ -316,7 +318,7 @@ export default function LoginPage() {
 
         {/* Tagline */}
         <p className="text-lg text-cream-200/80">
-          Lindungi tanaman, jaga panen
+          {t("login.decorativeTagline")}
         </p>
       </div>
     </div>

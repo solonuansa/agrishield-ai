@@ -59,3 +59,5 @@ ml-training/
 # --- Superpowers / Brainstorm ---
 .superpowers/
 docs/superpowers/
+
+.github/

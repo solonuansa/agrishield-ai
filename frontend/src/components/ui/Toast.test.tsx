@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { ToastContainer } from "./Toast";
 import { useToastStore } from "@/lib/hooks/useToast";
 

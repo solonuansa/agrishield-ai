@@ -1,16 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Scan, Leaf, Shield } from "lucide-react";
 
-const highlights = [
-  "Praktis dipakai langsung dari ponsel",
-  "Bahasa sederhana, mudah dipahami petani",
-  "Mendukung keputusan sebelum panen terdampak",
-];
-
 export default function HeroSection() {
+  const { t } = useTranslation();
+
+  const highlights = [
+    t("hero.highlight1"),
+    t("hero.highlight2"),
+    t("hero.highlight3"),
+  ];
+
   return (
     <section className="relative overflow-hidden bg-forest-900 text-cream">
       {/* Grain noise overlay */}
@@ -36,7 +39,7 @@ export default function HeroSection() {
               transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
               className="mb-5 text-xs font-bold uppercase tracking-[0.22em] text-clay-light"
             >
-              Pendamping Cerdas untuk Kesehatan Tanaman
+              {t("hero.kicker")}
             </motion.p>
 
             <motion.h1
@@ -45,9 +48,9 @@ export default function HeroSection() {
               transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
               className="font-serif text-[2.8rem] font-semibold leading-[0.98] tracking-tight sm:text-5xl lg:text-[3.4rem]"
             >
-              Kenali gejala{" "}
-              <span className="italic text-clay-light">penyakit tanaman</span>{" "}
-              lebih awal, jaga panen tetap aman.
+              {t("hero.title1")}{" "}
+              <span className="italic text-clay-light">{t("hero.titleEmphasis")}</span>{" "}
+              {t("hero.title2")}
             </motion.h1>
 
             <motion.p
@@ -56,9 +59,7 @@ export default function HeroSection() {
               transition={{ duration: 0.6, delay: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
               className="mt-5 max-w-lg text-base leading-relaxed text-cream/85 lg:text-[1.05rem]"
             >
-              AgriShield membantu petani, penyuluh, dan komunitas tani mengenali
-              kondisi tanaman lebih cepat melalui foto daun, lalu memberikan
-              panduan langkah awal yang jelas dan mudah diikuti.
+              {t("hero.description")}
             </motion.p>
 
             <motion.div
@@ -71,13 +72,13 @@ export default function HeroSection() {
                 href="/scan"
                 className="inline-flex items-center justify-center rounded-full bg-clay px-6 py-2.5 text-sm font-semibold tracking-wide text-cream transition-colors hover:bg-clay-dark"
               >
-                Coba Scan Gratis
+                {t("hero.ctaScan")}
               </Link>
               <Link
                 href="#fitur"
                 className="inline-flex items-center justify-center rounded-full border border-cream/25 px-6 py-2.5 text-sm font-medium tracking-wide text-cream/80 transition-colors hover:border-cream/45 hover:text-cream"
               >
-                Pelajari Lebih Lanjut
+                {t("hero.ctaLearn")}
               </Link>
             </motion.div>
 
@@ -120,7 +121,7 @@ export default function HeroSection() {
                       {/* Scan overlay */}
                       <div className="absolute inset-x-4 top-4 flex items-center gap-2 rounded-full bg-forest-900/70 px-3 py-1.5 backdrop-blur-md">
                         <Scan className="h-3.5 w-3.5 text-clay-light" />
-                        <span className="text-[0.7rem] font-semibold text-cream/90">Menganalisis gambar...</span>
+                        <span className="text-[0.7rem] font-semibold text-cream/90">{t("hero.phoneScanning")}</span>
                       </div>
                       {/* Corner markers */}
                       <div className="absolute inset-3 border border-cream/20" />
@@ -134,7 +135,7 @@ export default function HeroSection() {
                     <div className="rounded-xl border border-cream/10 bg-forest-700/60 p-3.5 backdrop-blur-sm">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-cream/60">Hasil Analisis</p>
+                          <p className="text-[0.65rem] font-bold uppercase tracking-widest text-cream/60">{t("hero.phoneResult")}</p>
                           <p className="mt-0.5 font-serif text-lg font-semibold text-cream">Blast Padi</p>
                         </div>
                         <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-clay-light/40">
@@ -149,12 +150,12 @@ export default function HeroSection() {
                     {/* Quick actions */}
                     <div className="grid grid-cols-2 gap-2">
                       <div className="rounded-lg border border-cream/10 bg-forest-700/40 px-3 py-2">
-                        <p className="text-[0.6rem] uppercase tracking-wider text-cream/55">Tanaman</p>
-                        <p className="mt-0.5 text-xs font-semibold text-cream/90">Padi</p>
+                        <p className="text-[0.6rem] uppercase tracking-wider text-cream/55">{t("hero.phoneCrop")}</p>
+                        <p className="mt-0.5 text-xs font-semibold text-cream/90">{t("crop.rice")}</p>
                       </div>
                       <div className="rounded-lg border border-cream/10 bg-forest-700/40 px-3 py-2">
-                        <p className="text-[0.6rem] uppercase tracking-wider text-cream/55">Status</p>
-                        <p className="mt-0.5 text-xs font-semibold text-clay-light">Penyakit Terdeteksi</p>
+                        <p className="text-[0.6rem] uppercase tracking-wider text-cream/55">{t("hero.phoneStatus")}</p>
+                        <p className="mt-0.5 text-xs font-semibold text-clay-light">{t("hero.phoneDisease")}</p>
                       </div>
                     </div>
                   </div>
@@ -173,7 +174,7 @@ export default function HeroSection() {
                     <Shield className="h-3.5 w-3.5 text-clay-light" />
                   </div>
                   <div>
-                    <p className="text-[0.6rem] font-bold uppercase tracking-wider text-cream/60">Terlindungi</p>
+                    <p className="text-[0.6rem] font-bold uppercase tracking-wider text-cream/60">{t("hero.phoneProtected")}</p>
                     <p className="text-[0.75rem] font-semibold text-cream">AgriShield AI</p>
                   </div>
                 </div>
@@ -186,11 +187,11 @@ export default function HeroSection() {
                 transition={{ duration: 0.6, delay: 0.85, ease: [0.25, 0.1, 0.25, 1] }}
                 className="absolute -bottom-3 -left-6 z-20 rounded-xl border border-cream/10 bg-forest-800/95 px-4 py-3 shadow-lg backdrop-blur-md"
               >
-                <p className="text-[0.6rem] font-bold uppercase tracking-wider text-cream/60">Scan Terdaftar</p>
+                <p className="text-[0.6rem] font-bold uppercase tracking-wider text-cream/60">{t("hero.phoneScans")}</p>
                 <p className="mt-0.5 font-serif text-xl font-semibold text-cream">12.450+</p>
                 <div className="mt-1.5 flex items-center gap-1">
                   <span className="h-1 w-1 rounded-full bg-emerald-400" />
-                  <span className="text-[0.65rem] text-cream/60">Aktif di 34 provinsi</span>
+                  <span className="text-[0.65rem] text-cream/60">{t("hero.phoneActive")}</span>
                 </div>
               </motion.div>
 

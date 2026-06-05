@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
@@ -12,8 +13,8 @@ import { getAccessToken } from "@/lib/auth";
 import { formatDateID } from "@/lib/ui";
 import type { ScanResponse } from "@/types/api";
 
-function cropLabel(value: "rice" | "corn") {
-  return value === "rice" ? "Padi" : "Jagung";
+function cropLabel(value: "rice" | "corn", t: (key: string) => string) {
+  return value === "rice" ? t("crop.rice") : t("crop.corn");
 }
 
 function isHealthyDisease(disease: string | null | undefined): boolean {
@@ -23,6 +24,7 @@ function isHealthyDisease(disease: string | null | undefined): boolean {
 }
 
 function HistoryContent() {
+  const { t } = useTranslation();
   const token = getAccessToken();
 
   const scansQuery = useQuery({
@@ -35,17 +37,17 @@ function HistoryContent() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
-      <PageHeader title="Riwayat Scan" description="Semua riwayat pemindaian Anda." />
+      <PageHeader title={t("history.title")} description={t("history.description")} />
 
       {scansQuery.isLoading ? (
         <SkeletonLines count={5} />
       ) : scansQuery.isError ? (
-        <p className="text-sm text-clay-dark">Gagal memuat riwayat scan.</p>
+        <p className="text-sm text-clay-dark">{t("history.error")}</p>
       ) : scans.length === 0 ? (
         <EmptyState
           icon={<Clock size={36} strokeWidth={1.5} />}
-          title="Belum Ada Riwayat"
-          description="Scan pertama Anda akan muncul di sini."
+          title={t("history.emptyTitle")}
+          description={t("history.emptyDesc")}
         />
       ) : (
         <div className="border-t border-cream-darker">
@@ -61,12 +63,12 @@ function HistoryContent() {
                     {scan.result.detected_disease}
                   </Badge>
                 ) : (
-                  <span className="text-sm text-ink-muted">Sedang diproses</span>
+                  <span className="text-sm text-ink-muted">{t("history.processing")}</span>
                 )}
               </div>
               <div className="flex items-center gap-6 sm:gap-8">
                 <span className="text-xs text-ink-muted">{formatDateID(scan.created_at)}</span>
-                <Badge variant="default">{cropLabel(scan.crop_type)}</Badge>
+                <Badge variant="default">{cropLabel(scan.crop_type, t)}</Badge>
                 <span className="text-sm font-medium text-forest-700">
                   {scan.result ? `${Math.round(scan.result.confidence * 100)}%` : "-"}
                 </span>

@@ -3,6 +3,7 @@ import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 import "@/lib/animations.css";
 import Providers from "@/components/Providers";
+import I18nProvider from "@/lib/i18n/I18nProvider";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
@@ -58,9 +59,11 @@ export default function RootLayout({
           Lewati ke konten utama
         </a>
         <Providers>
-          <Navbar />
-          <main id="main-content" className="flex-1">{children}</main>
-          <Footer />
+          <I18nProvider>
+            <Navbar />
+            <main id="main-content" className="flex-1">{children}</main>
+            <Footer />
+          </I18nProvider>
         </Providers>
       </body>
     </html>

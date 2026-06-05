@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
 export default function CTASection() {
+  const { t } = useTranslation();
+
   return (
     <section className="relative overflow-hidden bg-forest-700 text-cream">
       {/* Grain noise overlay */}
@@ -26,17 +29,16 @@ export default function CTASection() {
           transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
         >
           <p className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-clay-light">
-            Bergabung Sekarang
+            {t("cta.kicker")}
           </p>
           <h2 className="mx-auto font-serif text-[2.8rem] font-semibold leading-[0.95] tracking-tight text-wrap-balance sm:text-5xl lg:text-[3.6rem]">
-            Mulai lindungi{" "}
-            <span className="italic text-clay-light">tanamanmu</span>{" "}
-            sekarang.
+            {t("cta.title1")}{" "}
+            <span className="italic text-clay-light">{t("cta.titleEmphasis")}</span>{" "}
+            {t("cta.title2")}
           </h2>
           <div className="editorial-line mx-auto mt-6 mb-5" />
           <p className="mx-auto max-w-lg text-lg leading-relaxed text-cream/85">
-            Tidak perlu kartu kredit. Gratis selamanya untuk petani. Daftar
-            dalam hitungan menit dan langsung mulai scan.
+            {t("cta.description")}
           </p>
         </motion.div>
 
@@ -55,13 +57,13 @@ export default function CTASection() {
             href="/login?mode=register"
             className="inline-flex items-center justify-center rounded-full bg-clay px-8 py-3 text-base font-semibold tracking-wide text-cream shadow-[0_8px_32px_-8px_rgba(184,92,69,0.5)] transition-all hover:-translate-y-0.5 hover:bg-clay-dark hover:shadow-[0_12px_40px_-8px_rgba(184,92,69,0.6)]"
           >
-            Daftar Gratis
+            {t("cta.register")}
           </Link>
           <Link
             href="/scan"
             className="inline-flex items-center justify-center rounded-full border border-cream/20 px-8 py-3 text-base font-medium tracking-wide text-cream/85 transition-all hover:-translate-y-0.5 hover:border-cream/40 hover:text-cream"
           >
-            Coba Tanpa Daftar
+            {t("cta.tryWithoutAccount")}
           </Link>
         </motion.div>
 

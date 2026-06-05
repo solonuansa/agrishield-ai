@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { apiPost } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
@@ -14,6 +15,7 @@ import { useToast } from "@/lib/hooks/useToast";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 function CreatePostForm() {
+  const { t } = useTranslation();
   const router = useRouter();
   const toast = useToast();
   const token = getAccessToken();
@@ -28,11 +30,11 @@ function CreatePostForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (title.trim().length < 5) {
-      setError("Judul minimal 5 karakter.");
+      setError(t("community.createPostPage.titleTooShort"));
       return;
     }
     if (body.trim().length < 10) {
-      setError("Isi diskusi minimal 10 karakter.");
+      setError(t("community.createPostPage.bodyTooShort"));
       return;
     }
     setError("");
@@ -47,10 +49,10 @@ function CreatePostForm() {
       if (cropType) payload.crop_type = cropType;
 
       await apiPost("/community/posts", payload, token);
-      toast.success("Diskusi berhasil dibuat!");
+      toast.success(t("community.createPostPage.submitSuccess"));
       router.push("/community");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Gagal membuat diskusi.";
+      const msg = err instanceof Error ? err.message : t("community.createPostPage.submitError");
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -64,18 +66,18 @@ function CreatePostForm() {
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted transition-colors hover:text-forest-700"
       >
         <ArrowLeft size={16} />
-        Kembali
+        {t("community.createPostPage.back")}
       </button>
 
       <PageHeader
-        title="Buat Diskusi Baru"
-        description="Bagikan pertanyaan, pengalaman, atau tips dengan komunitas petani."
+        title={t("community.createPostPage.title")}
+        description={t("community.createPostPage.description")}
       />
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
         <Input
-          label="Judul Diskusi"
-          placeholder="Contoh: Daun padi menguning setelah pemupukan"
+          label={t("community.createPostPage.titleLabel")}
+          placeholder={t("community.createPostPage.titlePlaceholder")}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={255}
@@ -83,8 +85,8 @@ function CreatePostForm() {
         />
 
         <Textarea
-          label="Isi Diskusi"
-          placeholder="Jelaskan pertanyaan, pengalaman, atau tips Anda secara detail..."
+          label={t("community.createPostPage.bodyLabel")}
+          placeholder={t("community.createPostPage.bodyPlaceholder")}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={6}
@@ -93,21 +95,21 @@ function CreatePostForm() {
 
         <div className="grid gap-6 sm:grid-cols-2">
           <Select
-            label="Jenis Tanaman"
+            label={t("community.createPostPage.cropType")}
             options={[
-              { value: "", label: "— Pilih (opsional) —" },
-              { value: "rice", label: "Padi" },
-              { value: "corn", label: "Jagung" },
+              { value: "", label: t("community.createPostPage.cropPlaceholder") },
+              { value: "rice", label: t("crop.rice") },
+              { value: "corn", label: t("crop.corn") },
             ]}
             value={cropType}
             onChange={(e) => setCropType(e.target.value)}
           />
           <Select
-            label="Kategori"
+            label={t("community.createPostPage.category")}
             options={[
-              { value: "question", label: "Pertanyaan" },
-              { value: "experience", label: "Pengalaman" },
-              { value: "tips", label: "Tips" },
+              { value: "question", label: t("community.createPostPage.categoryQuestion") },
+              { value: "experience", label: t("community.createPostPage.categoryExperience") },
+              { value: "tips", label: t("community.createPostPage.categoryTips") },
             ]}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -122,14 +124,14 @@ function CreatePostForm() {
 
         <div className="flex gap-3">
           <Button type="submit" disabled={submitting}>
-            {submitting ? "Mempublikasikan..." : "Publikasikan"}
+            {submitting ? t("community.createPostPage.publishing") : t("community.createPostPage.publish")}
           </Button>
           <Button
             type="button"
             variant="secondary"
             onClick={() => router.back()}
           >
-            Batal
+            {t("community.createPostPage.cancel")}
           </Button>
         </div>
       </form>

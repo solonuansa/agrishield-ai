@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   MapPin,
@@ -32,8 +33,8 @@ type CropType = "rice" | "corn";
 
 type IconComponent = typeof Sprout;
 
-function cropLabel(value: CropType) {
-  return value === "rice" ? "Padi" : "Jagung";
+function cropLabel(value: CropType, t: (key: string) => string) {
+  return value === "rice" ? t("crop.rice") : t("crop.corn");
 }
 
 function cropIcon(value: CropType): IconComponent {
@@ -47,33 +48,43 @@ const statusVariantMap: Record<string, "default" | "success" | "warning" | "dang
   pending: "info",
 };
 
-const statusLabelMap: Record<string, string> = {
-  completed: "Selesai",
-  processing: "Memproses",
-  failed: "Gagal",
-  pending: "Menunggu",
-};
+function useStatusLabelMap(t: (key: string) => string) {
+  return {
+    completed: t("scan.statusCompleted"),
+    processing: t("scan.statusProcessing"),
+    failed: t("scan.statusFailed_label"),
+    pending: t("scan.statusPending"),
+  };
+}
 
-const PROCESSING_STEPS = [
-  "Menganalisis gambar...",
-  "Mendeteksi penyakit...",
-  "Menyusun rekomendasi...",
-];
+function useProcessingSteps(t: (key: string) => string) {
+  return [
+    t("scan.stepAnalyzing"),
+    t("scan.stepDetecting"),
+    t("scan.stepRecommendations"),
+  ];
+}
 
-const PHOTO_TIPS = [
-  { icon: Sun, text: "Pastikan pencahayaan cukup terang." },
-  { icon: ScanSearch, text: "Fokuskan kamera pada gejala di daun." },
-  { icon: Ruler, text: "Jarak ideal 10-30 cm dari objek." },
-  { icon: Ban, text: "Hindari bayangan yang menutup area gejala." },
-];
+function usePhotoTips(t: (key: string) => string) {
+  return [
+    { icon: Sun, text: t("scan.tipLight") },
+    { icon: ScanSearch, text: t("scan.tipFocus") },
+    { icon: Ruler, text: t("scan.tipDistance") },
+    { icon: Ban, text: t("scan.tipShadow") },
+  ];
+}
 
 export default function ScanPage() {
+  const { t } = useTranslation();
+  const statusLabelMap = useStatusLabelMap(t);
+  const PROCESSING_STEPS = useProcessingSteps(t);
+  const PHOTO_TIPS = usePhotoTips(t);
   const [cropType, setCropType] = useState<CropType>("rice");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [scanData, setScanData] = useState<ScanResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [locationText, setLocationText] = useState("Lokasi belum dipilih");
+  const [locationText, setLocationText] = useState(t("scan.locationNotSelected"));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [coords, setCoords] = useState<{ latitude?: number; longitude?: number }>({});
@@ -97,26 +108,26 @@ export default function ScanPage() {
 
   const detectLocation = useCallback(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setLocationText("Browser tidak mendukung geolocation");
-      toast.warning("Browser tidak mendukung geolokasi");
+      setLocationText(t("scan.geoNotSupported"));
+      toast.warning(t("scan.geoWarning"));
       return;
     }
 
     setIsLocating(true);
-    setLocationText("Mendeteksi lokasi...");
+    setLocationText(t("scan.detecting"));
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const latitude = Number(position.coords.latitude.toFixed(6));
         const longitude = Number(position.coords.longitude.toFixed(6));
         setCoords({ latitude, longitude });
-        setLocationText(`Lokasi tersimpan: ${latitude}, ${longitude}`);
+        setLocationText(t("scan.locationSaved", { lat: latitude, lng: longitude }));
         setIsLocating(false);
-        toast.success("Lokasi berhasil terdeteksi");
+        toast.success(t("scan.analysisStarted"));
       },
       () => {
-        setLocationText("Izin lokasi ditolak");
+        setLocationText(t("scan.locationDenied"));
         setIsLocating(false);
-        toast.error("Izin lokasi ditolak. Periksa pengaturan browser Anda.");
+        toast.error(t("scan.locationError"));
       },
       { enableHighAccuracy: true, timeout: 7000 }
     );
@@ -124,7 +135,7 @@ export default function ScanPage() {
 
   const runScan = useCallback(async () => {
     if (!selectedFile) {
-      const msg = "Pilih foto daun terlebih dahulu.";
+      const msg = t("scan.selectPhotoFirst");
       setErrorMessage(msg);
       toast.warning(msg);
       return;
@@ -149,13 +160,13 @@ export default function ScanPage() {
       const endpoint = token ? "/scans/auth" : "/scans";
       const data = await apiPostForm<ScanResponse>(endpoint, formData, token);
       setScanData(data);
-      toast.success("Analisis berhasil dimulai!");
+      toast.success(t("scan.analysisStarted"));
     } catch (error) {
       if (error instanceof ApiError) {
         setErrorMessage(error.message);
         toast.error(error.message);
       } else {
-        const msg = "Gagal menjalankan analisis. Coba lagi.";
+        const msg = t("scan.analysisFailed");
         setErrorMessage(msg);
         toast.error(msg);
       }
@@ -172,15 +183,15 @@ export default function ScanPage() {
       const latest = await apiGet<ScanResponse>(`/scans/${scanData.id}`);
       setScanData(latest);
       if (latest.status === "completed") {
-        toast.success("Hasil scan telah siap!");
+        toast.success(t("scan.statusReady"));
       } else if (latest.status === "failed") {
-        toast.error("Scan gagal diproses.");
+        toast.error(t("scan.statusFailed"));
       }
     } catch (error) {
       if (error instanceof ApiError) {
         toast.error(error.message);
       } else {
-        toast.error("Gagal memuat status scan.");
+        toast.error(t("scan.statusLoadError"));
       }
     } finally {
       setIsSubmitting(false);
@@ -194,12 +205,12 @@ export default function ScanPage() {
         className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-ink-muted transition-colors hover:text-forest-700"
       >
         <ArrowLeft className="h-4 w-4" />
-        Kembali
+        {t("scan.back")}
       </Link>
 
       <PageHeader
-        title="Scan Deteksi"
-        description="Unggah foto daun dan dapatkan diagnosis instan"
+        title={t("scan.title")}
+        description={t("scan.description")}
       />
 
       <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-8">
@@ -214,7 +225,7 @@ export default function ScanPage() {
       </motion.div>
 
       <motion.div variants={fadeUp} initial="hidden" animate="visible" className="mb-8">
-        <label className="mb-3 block text-sm font-semibold text-ink">Jenis Tanaman</label>
+        <label className="mb-3 block text-sm font-semibold text-ink">{t("scan.cropType")}</label>
         <div className="grid grid-cols-2 gap-4">
           {(["rice", "corn"] as const).map((crop) => {
             const CropIcon = cropIcon(crop);
@@ -245,7 +256,7 @@ export default function ScanPage() {
                   crop === cropType ? "text-forest-700" : "text-ink-muted"
                 }`}
               >
-                {cropLabel(crop)}
+                {cropLabel(crop, t)}
               </span>
             </motion.button>
             );
@@ -263,7 +274,7 @@ export default function ScanPage() {
               onClick={detectLocation}
               disabled={isSubmitting || isLocating}
             >
-              {isLocating ? "Mendeteksi..." : "Gunakan Lokasi"}
+              {isLocating ? t("scan.detecting") : t("scan.useLocation")}
             </Button>
             {isLocating && (
               <motion.span
@@ -286,7 +297,7 @@ export default function ScanPage() {
           disabled={!selectedFile || isSubmitting}
           className="w-full"
         >
-          Mulai Analisis
+          {t("scan.startAnalysis")}
         </Button>
       </motion.div>
 
@@ -355,7 +366,7 @@ export default function ScanPage() {
                   >
                     <motion.div variants={staggerItem}>
                       <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                        Penyakit Terdeteksi
+                        {t("scan.diseaseLabel")}
                       </p>
                       <p className="text-display text-forest-700">
                         {scanData.result.detected_disease}
@@ -364,7 +375,7 @@ export default function ScanPage() {
 
                     <motion.div variants={staggerItem}>
                       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                        Tingkat Keyakinan
+                        {t("scan.confidenceLabel")}
                       </p>
                       <div className="flex items-center gap-4">
                         <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-cream-200">
@@ -385,11 +396,11 @@ export default function ScanPage() {
 
                     <motion.div variants={staggerItem}>
                       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                        Rekomendasi
+                        {t("scan.recommendationLabel")}
                       </p>
                       <Card variant="flat" className="border-forest-200 bg-forest-50/40 p-4">
                         <p className="text-sm leading-relaxed text-ink-soft">
-                          {scanData.result.recommendation || "Rekomendasi belum tersedia."}
+                          {scanData.result.recommendation || t("scan.recommendationEmpty")}
                         </p>
                       </Card>
                     </motion.div>
@@ -400,14 +411,14 @@ export default function ScanPage() {
                         className="flex items-center gap-2 text-xs text-ink-muted"
                       >
                         <ShieldCheck className="h-3.5 w-3.5" />
-                        Hasil simulasi berdasarkan model ({scanData.result.model_version})
+                        {t("scan.simulationNote", { version: scanData.result.model_version })}
                       </motion.p>
                     )}
                   </motion.div>
                 ) : (
                   <div className="py-6 text-center">
                     <p className="mb-4 text-sm text-ink-muted">
-                      Hasil belum siap. Klik tombol di bawah untuk cek status terbaru.
+                      {t("scan.resultNotReady")}
                     </p>
                     <Button
                       variant="secondary"
@@ -415,7 +426,7 @@ export default function ScanPage() {
                       onClick={refreshStatus}
                       loading={isSubmitting}
                     >
-                      Cek Status
+                      {t("scan.checkStatus")}
                     </Button>
                   </div>
                 )}
@@ -433,7 +444,7 @@ export default function ScanPage() {
       >
         <Card variant="flat" className="p-6">
           <h3 className="mb-4 text-sm font-semibold text-forest-700">
-            Tips Pengambilan Foto
+            {t("scan.photoTips")}
           </h3>
           <motion.ul
             variants={staggerContainer}

@@ -1,35 +1,26 @@
 ﻿"use client";
 
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Camera, Brain, ClipboardCheck } from "lucide-react";
 
-const steps = [
-  {
-    icon: Camera,
-    title: "Ambil Foto",
-    desc: "Foto daun yang menunjukkan gejala menggunakan ponsel.",
-  },
-  {
-    icon: Brain,
-    title: "Analisis AI",
-    desc: "Model membaca pola visual dan menampilkan diagnosis.",
-  },
-  {
-    icon: ClipboardCheck,
-    title: "Tindak Lanjut",
-    desc: "Dapatkan rekomendasi spesifik dan estimasi biaya.",
-  },
-];
-
 export default function HowItWorksSection() {
+  const { t } = useTranslation();
+
+  const steps = [
+    { icon: Camera, title: t("howItWorks.step1Title"), desc: t("howItWorks.step1Desc") },
+    { icon: Brain, title: t("howItWorks.step2Title"), desc: t("howItWorks.step2Desc") },
+    { icon: ClipboardCheck, title: t("howItWorks.step3Title"), desc: t("howItWorks.step3Desc") },
+  ];
+
   return (
     <section id="cara-kerja" className="bg-cream-dark">
       <div className="mx-auto max-w-6xl px-6 py-12 sm:py-16 lg:px-8">
         {/* Header */}
         <div className="mb-12 text-center">
-          <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-clay">Cara Kerja</p>
+          <p className="mb-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-clay">{t("howItWorks.kicker")}</p>
           <h2 className="font-serif text-2xl font-semibold text-forest-700 sm:text-3xl">
-            Tiga langkah <span className="italic">sederhana</span>
+            {t("howItWorks.title")} <span className="italic">{t("howItWorks.titleEmphasis")}</span>{t("howItWorks.title2")}
           </h2>
         </div>
 
@@ -51,7 +42,7 @@ export default function HowItWorksSection() {
                     <Icon className="h-4 w-4" strokeWidth={1.5} />
                   </div>
                   <span className="text-[0.6rem] font-bold uppercase tracking-[0.15em] text-clay">
-                    Langkah {index + 1}
+                    {t("howItWorks.stepLabel")} {index + 1}
                   </span>
                 </div>
                 <h3 className="mt-4 font-serif text-lg font-semibold text-forest-700">

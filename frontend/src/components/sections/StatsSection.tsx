@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { fadeUp, staggerFadeUp } from "@/lib/motion";
 
@@ -50,6 +51,7 @@ function Stat({ value, suffix, label }: { value: number; suffix: string; label: 
 }
 
 export default function StatsSection() {
+  const { t } = useTranslation();
   const reduceMotion = useReducedMotion();
 
   return (
@@ -62,10 +64,10 @@ export default function StatsSection() {
           viewport={{ once: true, margin: "-60px" }}
           className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12"
         >
-          <Stat value={10000} suffix="+" label="Petani Terbantu" />
-          <Stat value={9} suffix="" label="Penyakit Dideteksi" />
-          <Stat value={34} suffix="" label="Provinsi Terjangkau" />
-          <Stat value={85} suffix="%+" label="Akurasi AI" />
+          <Stat value={10000} suffix="+" label={t("stats.farmers")} />
+          <Stat value={9} suffix="" label={t("stats.diseases")} />
+          <Stat value={34} suffix="" label={t("stats.provinces")} />
+          <Stat value={85} suffix="%+" label={t("stats.accuracy")} />
         </motion.div>
       </div>
     </section>

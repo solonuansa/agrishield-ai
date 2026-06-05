@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Users, Scan, AlertTriangle, CheckCircle2, Bell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +15,7 @@ import { staggerContainer, staggerItem } from "@/lib/motion";
 import type { AdminStats } from "@/types/api";
 
 function AdminContent() {
+  const { t } = useTranslation();
   const token = getAccessToken();
 
   const statsQuery = useQuery({
@@ -26,7 +28,7 @@ function AdminContent() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">
-      <PageHeader title="Panel Admin" description="Statistik nasional AgriShield AI." />
+      <PageHeader title={t("admin.title")} description={t("admin.description")} />
 
       {statsQuery.isLoading ? (
         <div className="space-y-3">
@@ -35,7 +37,7 @@ function AdminContent() {
         </div>
       ) : statsQuery.isError || !stats ? (
         <p className="text-sm text-clay-dark">
-          Data admin belum bisa diakses. Pastikan akun Anda memiliki role admin/pemerintah.
+          {t("admin.dataUnavailable")}
         </p>
       ) : (
         <motion.div variants={staggerContainer} initial="hidden" animate="visible">
@@ -43,50 +45,50 @@ function AdminContent() {
             <motion.div variants={staggerItem}>
               <StatCard
                 icon={<Users size={18} />}
-                label="Pengguna"
+                label={t("admin.users")}
                 value={stats.total_users}
               />
             </motion.div>
             <motion.div variants={staggerItem}>
               <StatCard
                 icon={<Scan size={18} />}
-                label="Scan Nasional"
+                label={t("admin.nationalScans")}
                 value={stats.total_scans}
               />
             </motion.div>
             <motion.div variants={staggerItem}>
               <StatCard
                 icon={<AlertTriangle size={18} />}
-                label="Kasus Penyakit"
+                label={t("admin.diseaseCases")}
                 value={stats.disease_detected}
               />
             </motion.div>
             <motion.div variants={staggerItem}>
               <StatCard
                 icon={<CheckCircle2 size={18} />}
-                label="Kasus Sehat"
+                label={t("admin.healthyCases")}
                 value={stats.healthy_detected}
               />
             </motion.div>
             <motion.div variants={staggerItem}>
               <StatCard
                 icon={<Bell size={18} />}
-                label="Alert Aktif"
+                label={t("admin.activeAlerts")}
                 value={stats.active_alerts}
               />
             </motion.div>
           </div>
 
           <div className="mt-12">
-            <h2 className="mb-6 font-serif text-2xl font-medium text-forest-700">Top Provinsi</h2>
+            <h2 className="mb-6 font-serif text-2xl font-medium text-forest-700">{t("admin.topProvinces")}</h2>
             <div className="divide-y divide-cream-darker/40 border-t border-cream-darker">
               {stats.by_province.slice(0, 8).map((province) => (
                 <div key={province.province} className="grid gap-2 py-4 sm:grid-cols-[1.5fr_1fr_1fr_2fr] sm:items-center">
                   <p className="text-sm font-medium text-ink-soft">{province.province}</p>
-                  <p className="text-xs text-ink-muted">{province.total_scans} scan</p>
-                  <p className="text-xs text-ink-muted">{province.disease_count} penyakit</p>
+                  <p className="text-xs text-ink-muted">{t("admin.scans", { count: province.total_scans })}</p>
+                  <p className="text-xs text-ink-muted">{t("admin.diseases", { count: province.disease_count })}</p>
                   <p className="text-xs text-ink-muted">
-                    Dominan:{" "}
+                    {t("admin.dominant")}{" "}
                     {province.top_disease ? (
                       <Badge variant="info">{province.top_disease}</Badge>
                     ) : (

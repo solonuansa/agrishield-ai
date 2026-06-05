@@ -1,36 +1,41 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { Sprout } from "lucide-react";
 
-const cols = [
-  {
-    title: "Produk",
-    links: [
-      { label: "Home", href: "/" },
-      { label: "Scan Penyakit", href: "/scan" },
-      { label: "Peta Sebaran", href: "/map" },
-      { label: "Dashboard", href: "/dashboard" },
-      { label: "Komunitas", href: "/community" },
-    ],
-  },
-  {
-    title: "Akses Cepat",
-    links: [
-      { label: "Masuk", href: "/login" },
-      { label: "Daftar", href: "/login?mode=register" },
-      { label: "Riwayat Scan", href: "/history" },
-    ],
-  },
-  {
-    title: "Lainnya",
-    links: [
-      { label: "Lahan", href: "/fields" },
-      { label: "Admin", href: "/admin" },
-      { label: "Peta", href: "/map" },
-    ],
-  },
-];
-
 export default function Footer() {
+  const { t } = useTranslation();
+
+  const cols = [
+    {
+      title: t("footer.product"),
+      links: [
+        { label: t("nav.home"), href: "/" },
+        { label: t("footer.scanDisease"), href: "/scan" },
+        { label: t("footer.distributionMap"), href: "/map" },
+        { label: t("nav.dashboard"), href: "/dashboard" },
+        { label: t("footer.community"), href: "/community" },
+      ],
+    },
+    {
+      title: t("footer.quickAccess"),
+      links: [
+        { label: t("footer.login"), href: "/login" },
+        { label: t("footer.register"), href: "/login?mode=register" },
+        { label: t("footer.scanHistory"), href: "/history" },
+      ],
+    },
+    {
+      title: t("footer.others"),
+      links: [
+        { label: t("footer.fields"), href: "/fields" },
+        { label: t("footer.admin"), href: "/admin" },
+        { label: t("footer.map"), href: "/map" },
+      ],
+    },
+  ];
+
   return (
     <footer className="border-t border-cream-darker/50 bg-cream-dark">
       <div className="mx-auto max-w-6xl px-6 py-6 sm:py-7 lg:px-8 lg:py-8">
@@ -42,7 +47,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="mt-2 max-w-xs text-sm leading-relaxed text-ink-muted">
-              Platform pendamping kesehatan tanaman untuk petani Indonesia.
+              {t("footer.tagline")}
             </p>
             <div className="mt-3 space-y-1 text-sm text-ink-muted">
               <p>halo@agrishield.id</p>
@@ -84,9 +89,9 @@ export default function Footer() {
           </div>
           <div className="flex flex-col gap-1 border-t border-cream-darker/40 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-ink-muted">
-              &copy; {new Date().getFullYear()} AgriShield AI
+              {t("footer.copyright", { year: new Date().getFullYear() })}
             </p>
-            <p className="text-xs text-ink-muted">Dibuat untuk ketahanan pangan Indonesia</p>
+            <p className="text-xs text-ink-muted">{t("footer.madeFor")}</p>
           </div>
         </div>
       </div>

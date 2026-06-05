@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from "lucide-react";
 import { useToastStore, type ToastType } from "@/lib/hooks/useToast";
@@ -26,6 +27,7 @@ const bgMap: Record<ToastType, string> = {
 };
 
 export function ToastContainer() {
+  const { t } = useTranslation();
   const toasts = useToastStore((s) => s.toasts);
   const removeToast = useToastStore((s) => s.removeToast);
 
@@ -48,7 +50,7 @@ export function ToastContainer() {
               <p className="text-sm text-ink flex-1 leading-snug">{toast.message}</p>
               <button
                 onClick={() => removeToast(toast.id)}
-                aria-label="Tutup notifikasi"
+                aria-label={t("toast.closeNotification")}
                 className="shrink-0 text-ink-muted hover:text-ink transition-colors"
               >
                 <X size={16} />

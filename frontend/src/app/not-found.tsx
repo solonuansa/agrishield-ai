@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Sprout } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function NotFound() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   return (
@@ -26,9 +28,9 @@ export default function NotFound() {
         </motion.p>
         <EmptyState
           icon={<Sprout size={36} strokeWidth={1.5} />}
-          title="Halaman tidak ditemukan"
-          description="Maaf, halaman yang Anda cari tidak tersedia."
-          actionLabel="Kembali ke Beranda"
+          title={t("notFound.title")}
+          description={t("notFound.description")}
+          actionLabel={t("notFound.action")}
           onAction={() => router.push("/")}
         />
       </motion.div>
