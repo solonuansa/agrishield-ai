@@ -60,4 +60,21 @@ ml-training/
 .superpowers/
 docs/superpowers/
 
+# --- AI Agent config ---
+.claude/
+
+# --- Non-essential docs (not for production) ---
+IMPLEMENTATION_PLAN.md
+ROADMAP.md
+CLAUDE.md
+frontend/CLAUDE.md
+frontend/AGENTS.md
+frontend/README.md
+
+# --- Build output ---
+frontend/out/
+
+# --- Pytest cache ---
+.pytest_cache/
+
 .github/

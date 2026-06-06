@@ -1,6 +1,6 @@
 ﻿# AgriShield Frontend
 
-Frontend AgriShield dibangun dengan Next.js App Router.
+AgriShield frontend built with Next.js App Router.
 
 ## Stack
 
@@ -9,8 +9,9 @@ Frontend AgriShield dibangun dengan Next.js App Router.
 - TypeScript
 - Tailwind CSS 4
 - TanStack React Query
+- i18next + react-i18next (EN/ID bilingual)
 
-## Menjalankan Lokal
+## Running Locally
 
 ```bash
 cd frontend
@@ -18,38 +19,53 @@ npm install
 npm run dev
 ```
 
-Default berjalan di `http://localhost:3000`.
+Default at `http://localhost:3000`.
 
-## Script yang Tersedia
+## Available Scripts
 
 ```bash
-npm run dev
-npm run lint
-npm run build
-npm run start
+npm run dev       # Start dev server
+npm run lint      # Run ESLint
+npm run build     # Production build
+npm run start     # Start production server
+npm run type-check # TypeScript check
+npm run test      # Run Vitest
 ```
 
-## Struktur Utama
+## Directory Structure
 
 ```text
 frontend/
-|-- src/app/            # route App Router
-|-- src/components/     # komponen UI
-|-- src/lib/            # util, auth, API client
-|-- public/             # aset statis
+├── src/app            # App Router routes
+├── src/components     # UI and feature components
+├── src/lib            # Utilities, auth, API client, i18n
+├── public             # Static assets
+└── public/locales     # Translation JSON files
 ```
 
-## Integrasi API
+## API Integration
 
-Frontend membaca base URL dari:
+Frontend reads the base URL from:
 
 - `NEXT_PUBLIC_API_BASE` (client-side)
-- `INTERNAL_API_BASE` (server-side, opsional)
+- `INTERNAL_API_BASE` (server-side, optional)
 
-Fallback default: `http://localhost:8000/api`.
+Default fallback: `http://localhost:8000/api`.
 
-## Catatan
+## Internationalization
 
-- Halaman yang butuh login memakai `ProtectedRoute`.
-- Data fetch client-side memakai React Query.
-- Build produksi wajib lulus sebelum merge.
+The app supports English (EN) and Indonesian (ID). Language can be toggled from the navbar. Preference is saved to `localStorage`.
+
+Translation files are located at:
+
+```
+src/lib/i18n/locales/
+├── en.json
+└── id.json
+```
+
+## Notes
+
+- Pages requiring authentication use `ProtectedRoute`.
+- Data fetching uses React Query.
+- Production builds must pass CI before merging.
