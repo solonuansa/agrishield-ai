@@ -63,16 +63,29 @@ docs/superpowers/
 # --- AI Agent config ---
 .claude/
 
+# --- AI Agent & Claude files (anywhere) ---
+**/AGENTS.md
+**/CLAUDE.md
+**/.claude/
+
 # --- Non-essential docs (not for production) ---
 IMPLEMENTATION_PLAN.md
 ROADMAP.md
-CLAUDE.md
-frontend/CLAUDE.md
-frontend/AGENTS.md
 frontend/README.md
 
 # --- Build output ---
 frontend/out/
+frontend/.next/
+
+# --- TypeScript build info ---
+*.tsbuildinfo
+frontend/next-env.d.ts
+
+# --- Test coverage ---
+coverage/
+htmlcov/
+.coverage
+.coverage.*
 
 # --- Pytest cache ---
 .pytest_cache/

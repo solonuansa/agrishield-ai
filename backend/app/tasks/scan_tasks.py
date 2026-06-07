@@ -30,7 +30,6 @@ def analyze_scan(self, scan_id: str) -> dict:
 
 async def _analyze_scan_async(task, scan_id: str) -> dict:
     """Implementasi async dari analyze_scan task."""
-    from sqlalchemy.ext.asyncio import AsyncSession
 
     from app.core.config import settings
     from app.core.database import AsyncSessionLocal
@@ -114,7 +113,6 @@ async def _analyze_scan_async(task, scan_id: str) -> dict:
 
 async def _download_image_from_r2(image_key: str) -> bytes:
     """Download gambar dari Cloudflare R2 menggunakan signed URL atau public URL."""
-    from app.core.config import settings
     from app.services.storage_service import get_public_url
 
     public_url = get_public_url(image_key)

@@ -11,7 +11,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.common import SuccessResponse
-from app.schemas.scan import ScanCreateRequest, ScanListMeta, ScanResponse
+from app.schemas.scan import ScanListMeta, ScanResponse
 from app.services.scan_service import (
     build_scan_response_dict,
     create_scan,

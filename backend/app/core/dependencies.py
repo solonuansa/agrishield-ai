@@ -20,7 +20,6 @@ async def get_current_user(
     Validasi JWT token dan kembalikan user dari database.
     """
     # Import di sini untuk menghindari circular import
-    from app.models.user import User
     from app.services.user_service import get_user_by_id
 
     token = credentials.credentials

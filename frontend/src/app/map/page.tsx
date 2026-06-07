@@ -4,25 +4,16 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
-import {
-  List,
-  MapPin,
-  TriangleAlert,
-  SlidersHorizontal,
-  Compass,
-} from "lucide-react";
+import { MapPin } from "lucide-react";
 import { apiGet } from "@/lib/api";
-import { formatDateID } from "@/lib/ui";
-import { staggerContainer, staggerItem } from "@/lib/motion";
-import { StatCard } from "@/components/ui/StatCard";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Select } from "@/components/ui/Select";
-import { Badge } from "@/components/ui/Badge";
-import type { BadgeVariant } from "@/components/ui/Badge";
-import { Skeleton, SkeletonLines } from "@/components/ui/Skeleton";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { HeatmapResponse, HeatmapPoint } from "@/types/api";
+import { DUMMY_HEATMAP } from "@/lib/mock-map-data";
+import { MapStats } from "@/components/map/MapStats";
+import { MapFilters } from "@/components/map/MapFilters";
+import { DiseaseList } from "@/components/map/DiseaseList";
 
 const HeatmapMap = dynamic(() => import("@/components/map/HeatmapMap"), {
   ssr: false,
@@ -33,134 +24,8 @@ const HeatmapMap = dynamic(() => import("@/components/map/HeatmapMap"), {
   ),
 });
 
-function useCropOptions(t: (key: string) => string) {
-  return [
-    { value: "all", label: t("map.allCrops") },
-    { value: "rice", label: t("crop.rice") },
-    { value: "corn", label: t("crop.corn") },
-  ] as const;
-}
-
-const DUMMY_HEATMAP: HeatmapResponse = {
-  total: 10,
-  points: [
-    {
-      scan_id: "dummy-sleman-001",
-      lat: -7.7241,
-      lng: 110.3623,
-      disease: "Blast Padi",
-      crop_type: "rice",
-      confidence: 0.89,
-      month: "2026-05",
-    },
-    {
-      scan_id: "dummy-sleman-002",
-      lat: -7.7185,
-      lng: 110.3698,
-      disease: "Hawar Daun Bakteri",
-      crop_type: "rice",
-      confidence: 0.81,
-      month: "2026-05",
-    },
-    {
-      scan_id: "dummy-sleman-003",
-      lat: -7.7312,
-      lng: 110.3744,
-      disease: "Bercak Cokelat",
-      crop_type: "rice",
-      confidence: 0.62,
-      month: "2026-04",
-    },
-    {
-      scan_id: "dummy-sleman-004",
-      lat: -7.7094,
-      lng: 110.3561,
-      disease: "Blast Padi",
-      crop_type: "rice",
-      confidence: 0.86,
-      month: "2026-04",
-    },
-    {
-      scan_id: "dummy-sleman-005",
-      lat: -7.7428,
-      lng: 110.3815,
-      disease: "Tungro",
-      crop_type: "rice",
-      confidence: 0.58,
-      month: "2026-03",
-    },
-    {
-      scan_id: "dummy-sleman-006",
-      lat: -7.7354,
-      lng: 110.3492,
-      disease: "Karat Jagung",
-      crop_type: "corn",
-      confidence: 0.77,
-      month: "2026-05",
-    },
-    {
-      scan_id: "dummy-sleman-007",
-      lat: -7.7217,
-      lng: 110.3908,
-      disease: "Hawar Daun Utara",
-      crop_type: "corn",
-      confidence: 0.84,
-      month: "2026-04",
-    },
-    {
-      scan_id: "dummy-sleman-008",
-      lat: -7.7471,
-      lng: 110.3659,
-      disease: "Bercak Daun Abu-abu",
-      crop_type: "corn",
-      confidence: 0.56,
-      month: "2026-03",
-    },
-    {
-      scan_id: "dummy-sleman-009",
-      lat: -7.7132,
-      lng: 110.4014,
-      disease: "Busuk Tongkol",
-      crop_type: "corn",
-      confidence: 0.88,
-      month: "2026-02",
-    },
-    {
-      scan_id: "dummy-sleman-010",
-      lat: -7.7299,
-      lng: 110.3437,
-      disease: "Hawar Daun Selatan",
-      crop_type: "corn",
-      confidence: 0.68,
-      month: "2026-02",
-    },
-  ],
-};
-
-function toCropLabel(value: string, t: (key: string) => string) {
-  return value === "rice" ? t("crop.rice") : t("crop.corn");
-}
-
-function confidenceColor(confidence: number) {
-  if (confidence >= 0.85) return "#b91c1c";
-  if (confidence >= 0.5) return "#a16207";
-  return "#15803d";
-}
-
-function diseaseBadgeVariant(disease: string): BadgeVariant {
-  const lower = disease.toLowerCase();
-  if (lower.includes("blast") || lower.includes("busuk") || lower.includes("kresek"))
-    return "danger";
-  if (lower.includes("blight") || lower.includes("hawar") || lower.includes("karat") || lower.includes("rust") || lower.includes("bercak"))
-    return "warning";
-  if (lower.includes("tungro"))
-    return "info";
-  return "default";
-}
-
 export default function MapPage() {
-  const { t, i18n } = useTranslation();
-  const CROP_OPTIONS = useCropOptions(t);
+  const { t } = useTranslation();
   const { data: heatmap, isLoading } = useQuery<HeatmapResponse>({
     queryKey: ["heatmap"],
     queryFn: async () => {
@@ -213,80 +78,21 @@ export default function MapPage() {
         description={t("map.description")}
       />
 
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        className="grid gap-4 border-y border-cream-darker py-6 sm:grid-cols-3"
-      >
-        <motion.div variants={staggerItem}>
-          <StatCard
-            label={t("map.reportPoints")}
-            value={allPoints.length}
-            icon={<MapPin size={18} />}
-          />
-        </motion.div>
-        <motion.div variants={staggerItem}>
-          <StatCard
-            label={t("map.highRisk")}
-            value={highRisk}
-            icon={
-              <TriangleAlert
-                size={18}
-                className={highRisk > 0 ? "text-clay" : ""}
-              />
-            }
-            className={highRisk > 0 ? "border-l-4 border-l-clay" : ""}
-          />
-        </motion.div>
-        <motion.div variants={staggerItem}>
-          <StatCard
-            label={t("map.uniqueClusters")}
-            value={provinces}
-            icon={<Compass size={18} />}
-          />
-        </motion.div>
-      </motion.div>
+      <MapStats
+        allPointsLength={allPoints.length}
+        highRisk={highRisk}
+        provinces={provinces}
+      />
 
-      <div className="mt-6 flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4 text-ink-muted" />
-          <span className="text-sm text-ink-soft">{t("map.filter")}</span>
-        </div>
-        <Select
-          options={[...CROP_OPTIONS]}
-          value={cropFilter}
-          onChange={(e) =>
-            setCropFilter(e.target.value as "all" | "rice" | "corn")
-          }
-          className="w-32"
-        />
-        {uniqueDiseases.length > 0 && (
-          <Select
-            options={[
-              { value: "all", label: t("map.allDiseases") },
-              ...uniqueDiseases.map((d) => ({ value: d, label: d })),
-            ]}
-            value={diseaseFilter}
-            onChange={(e) => setDiseaseFilter(e.target.value)}
-            className="w-44"
-          />
-        )}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-ink-muted">{t("map.minConfidence")}</span>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={Math.round(minConfidence * 100)}
-            onChange={(e) => setMinConfidence(Number(e.target.value) / 100)}
-            className="h-1 w-24 accent-forest-700"
-          />
-          <span className="w-8 text-xs tabular-nums text-ink-soft">
-            {Math.round(minConfidence * 100)}%
-          </span>
-        </div>
-      </div>
+      <MapFilters
+        cropFilter={cropFilter}
+        setCropFilter={setCropFilter}
+        diseaseFilter={diseaseFilter}
+        setDiseaseFilter={setDiseaseFilter}
+        minConfidence={minConfidence}
+        setMinConfidence={setMinConfidence}
+        uniqueDiseases={uniqueDiseases}
+      />
 
       <div className="mt-6 overflow-hidden rounded border border-cream-darker">
         <div className="flex items-center gap-2 border-b border-cream-darker px-4 py-3 text-sm font-medium text-ink-soft">
@@ -313,73 +119,12 @@ export default function MapPage() {
         )}
       </div>
 
-      <div className="mt-8 overflow-hidden rounded border border-cream-darker bg-cream-dark/40">
-        <div className="flex items-center gap-2 border-b border-cream-darker px-4 py-3 text-sm font-medium text-ink-soft">
-          <List className="h-4 w-4 text-forest-700" />
-          {t("map.listTitle")}
-        </div>
-        {isLoading ? (
-          <div className="px-4 py-10">
-            <SkeletonLines count={5} />
-          </div>
-        ) : filteredPoints.length === 0 ? (
-          <EmptyState
-            icon={<TriangleAlert size={32} />}
-            title={t("map.noPointsTitle")}
-            description={t("map.noPointsDesc")}
-          />
-        ) : (
-          <div>
-            <ul className="divide-y divide-cream-darker/60">
-              {filteredPoints.slice(0, pointLimit).map((point) => (
-                <li
-                  key={point.scan_id}
-                  className="grid gap-2 px-4 py-4 sm:grid-cols-[1.4fr_0.9fr_0.9fr_0.8fr] sm:items-center"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: confidenceColor(point.confidence) }}
-                    />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={diseaseBadgeVariant(point.disease)}>
-                          {point.disease}
-                        </Badge>
-                      </div>
-                      <p className="mt-1 text-xs text-ink-muted">
-                        {t("map.scanId", { id: point.scan_id.slice(0, 8) })} - {toCropLabel(point.crop_type, t)}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-ink-muted">
-                    Lat {point.lat.toFixed(4)}, Lng {point.lng.toFixed(4)}
-                  </p>
-                  <p className="text-xs text-ink-muted">
-                    {formatDateID(`${point.month}-01`, i18n.language?.startsWith("en") ? "en-US" : "id-ID")}
-                  </p>
-                  <p
-                    className="text-sm font-semibold"
-                    style={{ color: confidenceColor(point.confidence) }}
-                  >
-                    {Math.round(point.confidence * 100)}%
-                  </p>
-                </li>
-              ))}
-            </ul>
-            {filteredPoints.length > pointLimit && (
-              <div className="border-t border-cream-darker/60 px-4 py-3 text-center">
-                <button
-                  onClick={() => setPointLimit((prev) => prev + 20)}
-                  className="text-sm font-medium text-forest-700 transition-colors hover:text-clay"
-                >
-                  {t("map.loadMore", { count: filteredPoints.length - pointLimit })}
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <DiseaseList
+        filteredPoints={filteredPoints}
+        isLoading={isLoading}
+        pointLimit={pointLimit}
+        setPointLimit={setPointLimit}
+      />
     </div>
   );
 }

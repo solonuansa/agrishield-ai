@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import BadRequestException, NotFoundException
 from app.models.scan import Scan, ScanResult
-from app.services.storage_service import delete_scan_image, get_public_url, upload_scan_image
+from app.services.storage_service import get_public_url, upload_scan_image
 
 logger = logging.getLogger(__name__)
 
