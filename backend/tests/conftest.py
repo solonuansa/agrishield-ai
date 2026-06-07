@@ -8,6 +8,18 @@ from httpx import AsyncClient, ASGITransport
 from app.main import app
 
 
+@pytest.fixture(autouse=True)
+def mock_redis(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
+    """Mock Redis agar test tidak perlu koneksi Redis nyata."""
+    mock_redis = AsyncMock()
+    mock_redis.get = AsyncMock(return_value=None)
+    mock_redis.setex = AsyncMock(return_value=True)
+    mock_redis.delete = AsyncMock(return_value=True)
+    mock_redis.aclose = AsyncMock(return_value=None)
+    monkeypatch.setattr("app.core.cache.get_redis", lambda: mock_redis)
+    return mock_redis
+
+
 @pytest.fixture
 def mock_storage(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     """Mock upload_scan_image agar tidak benar-benar upload ke R2."""

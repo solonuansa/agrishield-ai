@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     # App
     environment: str = "development"
-    secret_key: str = "dev-secret-key-ganti-di-production"
+    secret_key: str
     access_token_expire_minutes: int = 15  # 15 menit
     refresh_token_expire_days: int = 7  # 7 hari
 
@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
     # ML Service
     ml_service_url: str = "http://ml-service:8001"
+    # NOTE: hanya untuk logging startup — logika mock ada di ml-service
     use_mock_model: bool = True
 
     # Google Gemini

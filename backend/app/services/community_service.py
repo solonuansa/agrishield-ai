@@ -170,7 +170,7 @@ async def create_comment(
         body=payload.body.strip(),
     )
     db.add(comment)
-    post.comment_count += 1
+    post.comment_count = (post.comment_count or 0) + 1
     await db.commit()
     await db.refresh(comment)
     return comment
@@ -189,8 +189,8 @@ async def delete_comment(
 
     post_result = await db.execute(select(Post).where(Post.id == comment.post_id))
     post = post_result.scalar_one_or_none()
-    if post and post.comment_count > 0:
-        post.comment_count -= 1
+    if post and (post.comment_count or 0) > 0:
+        post.comment_count = (post.comment_count or 0) - 1
 
     await db.delete(comment)
     await db.commit()
@@ -216,11 +216,11 @@ async def toggle_like(
 
     if existing_like:
         await db.delete(existing_like)
-        post.like_count = max(0, post.like_count - 1)
+        post.like_count = max(0, (post.like_count or 0) - 1)
         await db.commit()
         return False
     else:
         db.add(PostLike(post_id=post_id, user_id=user_id))
-        post.like_count += 1
+        post.like_count = (post.like_count or 0) + 1
         await db.commit()
         return True

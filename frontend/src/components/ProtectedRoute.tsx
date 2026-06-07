@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
@@ -18,8 +18,16 @@ export default function ProtectedRoute({
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
+  const [session, setSession] = useState(() => readSession());
 
-  const session = useMemo(() => readSession(), []);
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setSession(readSession());
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   const isAuthenticated = Boolean(session?.token);
   const isAdmin = session?.user.role === "admin" || session?.user.role === "government";
 

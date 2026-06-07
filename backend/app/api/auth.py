@@ -3,13 +3,17 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.cache import get_redis
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.exceptions import UnauthorizedException
 from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_refresh_token,
+    get_token_jti,
 )
+from app.main import limiter
 from app.schemas.common import SuccessResponse
 from app.schemas.user import (
     RefreshTokenRequest,
@@ -24,7 +28,6 @@ router = APIRouter()
 
 
 def _build_token_response(user) -> TokenResponse:
-    """Helper untuk membuat TokenResponse dengan access + refresh token."""
     return TokenResponse(
         access_token=create_access_token(subject=str(user.id)),
         refresh_token=create_refresh_token(subject=str(user.id)),
@@ -33,37 +36,47 @@ def _build_token_response(user) -> TokenResponse:
 
 
 @router.post("/register", response_model=SuccessResponse[TokenResponse], status_code=201)
+@limiter.limit("5/minute")
 async def register(
+    request,
     data: UserRegisterRequest,
     db: AsyncSession = Depends(get_db),
 ) -> SuccessResponse[TokenResponse]:
-    """Daftarkan akun baru dan langsung kembalikan access + refresh token."""
     user = await register_user(data, db)
     return SuccessResponse(data=_build_token_response(user))
 
 
 @router.post("/login", response_model=SuccessResponse[TokenResponse])
+@limiter.limit("10/minute")
 async def login(
+    request,
     data: UserLoginRequest,
     db: AsyncSession = Depends(get_db),
 ) -> SuccessResponse[TokenResponse]:
-    """Login dengan email dan password, kembalikan access + refresh token."""
     user = await authenticate_user(data.email, data.password, db)
     return SuccessResponse(data=_build_token_response(user))
 
 
 @router.post("/refresh", response_model=SuccessResponse[TokenResponse])
+@limiter.limit("10/minute")
 async def refresh_token(
+    request,
     data: RefreshTokenRequest,
     db: AsyncSession = Depends(get_db),
 ) -> SuccessResponse[TokenResponse]:
-    """
-    Generate access token baru menggunakan refresh token.
-    Refresh token yang valid akan menghasilkan pasangan token baru.
-    """
     user_id = decode_refresh_token(data.refresh_token)
     if not user_id:
         raise UnauthorizedException("Refresh token tidak valid atau sudah expired")
+
+    # Token rotation: cek apakah refresh token sudah pernah dipakai
+    token_jti = get_token_jti(data.refresh_token)
+    if token_jti:
+        r = get_redis()
+        if await r.get(f"refresh_token_used:{token_jti}"):
+            raise UnauthorizedException("Refresh token sudah tidak berlaku")
+        # Tandai token ini sebagai sudah dipakai (expire sesuai refresh token lifetime)
+        expire_seconds = settings.refresh_token_expire_days * 86400
+        await r.setex(f"refresh_token_used:{token_jti}", expire_seconds, "1")
 
     user = await get_user_by_id(user_id, db)
     if not user:

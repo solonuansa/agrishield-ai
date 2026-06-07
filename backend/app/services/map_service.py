@@ -6,7 +6,7 @@ Hasil di-cache di Redis selama 120 detik karena bersifat publik dan jarang berub
 
 import logging
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.cache import get_or_set
@@ -58,7 +58,7 @@ async def _fetch_heatmap_data(
         # Filter N bulan terakhir menggunakan interval PostgreSQL
         .where(
             Scan.created_at
-            >= text(f"NOW() - INTERVAL '{months} months'")
+            >= func.now() - text(":months MONTH").bindparams(months=months)
         )
         .order_by(Scan.created_at.desc())
         .limit(MAX_POINTS)

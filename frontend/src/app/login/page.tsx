@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,12 +17,6 @@ import DecorativePanel from "@/components/auth/DecorativePanel";
 
 type AuthMode = "login" | "register";
 
-function getSearchParam(name: string): string | null {
-  if (typeof window === "undefined") return null;
-  const params = new URLSearchParams(window.location.search);
-  return params.get(name);
-}
-
 function tabClass(active: boolean): string {
   return `flex-1 text-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
     active
@@ -32,6 +27,8 @@ function tabClass(active: boolean): string {
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const toast = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
@@ -42,19 +39,18 @@ export default function LoginPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const mode: AuthMode =
-    getSearchParam("mode") === "register" ? "register" : "login";
+    searchParams.get("mode") === "register" ? "register" : "login";
 
   const nextPath = useMemo(() => {
-    const rawNext = getSearchParam("next");
+    const rawNext = searchParams.get("next");
     if (!rawNext) return "/dashboard";
-
     try {
       const decodedNext = decodeURIComponent(rawNext);
       return decodedNext.startsWith("/") ? decodedNext : "/dashboard";
     } catch {
       return rawNext.startsWith("/") ? rawNext : "/dashboard";
     }
-  }, []);
+  }, [searchParams]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -92,11 +88,9 @@ export default function LoginPage() {
         mode === "login" ? t("login.loginSuccess") : t("login.registerSuccess"),
       );
 
-      if (typeof window !== "undefined") {
-        setTimeout(() => {
-          window.location.replace(nextPath);
-        }, 800);
-      }
+      setTimeout(() => {
+        router.replace(nextPath);
+      }, 800);
     } catch (error) {
       if (error instanceof ApiError) {
         toast.error(error.message);

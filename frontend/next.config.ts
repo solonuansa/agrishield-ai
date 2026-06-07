@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   output: "export",
   distDir: "out",
   trailingSlash: true,
-  reactStrictMode: false,
+  reactStrictMode: true,
   compress: true,
   poweredByHeader: false,
   images: {

@@ -1,4 +1,9 @@
-"""Pydantic schemas untuk modul Scan."""
+"""
+Pydantic schemas untuk modul Scan.
+
+CATATAN: `AlternativeDiagnosisSchema` di sini harus diselaraskan dengan
+`AlternativeDiagnosis` di ml-service/app/schemas.py (SOURCE OF TRUTH).
+"""
 
 import uuid
 from datetime import datetime
@@ -21,6 +26,7 @@ class ScanCreateRequest(BaseModel):
     longitude: float | None = Field(None, ge=-180, le=180)
 
 
+# Harus sinkron dengan ml-service/app/schemas.py:AlternativeDiagnosis
 class AlternativeDiagnosisSchema(BaseModel):
     disease: str
     confidence: float

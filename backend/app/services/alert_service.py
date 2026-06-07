@@ -107,19 +107,35 @@ async def run_outbreak_detection(db: AsyncSession) -> int:
         for key, points in groups.items()
     }
 
+    # Batch-fetch semua alert aktif yang relevan sebelum loop
+    disease_crop_pairs = [k for k, pts in groups.items() if len(pts) >= CLUSTER_THRESHOLD]
+    existing_alerts_map: dict[tuple[str, str], Alert] = {}
+    if disease_crop_pairs:
+        from sqlalchemy import or_
+        conditions = [and_(Alert.disease == d, Alert.crop_type == ct) for d, ct in disease_crop_pairs]
+        existing_result = await db.execute(
+            select(Alert).where(
+                and_(
+                    or_(*conditions),
+                    Alert.status == "active",
+                    Alert.detected_until >= cutoff,
+                )
+            )
+        )
+        for alert in existing_result.scalars().all():
+            existing_alerts_map[(alert.disease, alert.crop_type)] = alert
+
     new_alerts = 0
     for (disease, crop_type), points in groups.items():
         if len(points) < CLUSTER_THRESHOLD:
             continue
 
-        # Deteksi kluster sederhana: cari titik-titik yang saling berdekatan
         clusters = _find_clusters(points)
 
         for cluster_points in clusters:
             if len(cluster_points) < CLUSTER_THRESHOLD:
                 continue
 
-            # Hitung pusat kluster
             lats = [p[0] for p in cluster_points]
             lngs = [p[1] for p in cluster_points]
             center_lat = sum(lats) / len(lats)
@@ -127,18 +143,7 @@ async def run_outbreak_detection(db: AsyncSession) -> int:
             area_names = [p[2] for p in cluster_points if p[2]]
             area_name = area_names[0] if area_names else None
 
-            # Cek apakah sudah ada alert aktif untuk kluster ini
-            existing = await db.execute(
-                select(Alert).where(
-                    and_(
-                        Alert.disease == disease,
-                        Alert.crop_type == crop_type,
-                        Alert.status == "active",
-                        Alert.detected_until >= cutoff,
-                    )
-                )
-            )
-            existing_alert = existing.scalar_one_or_none()
+            existing_alert = existing_alerts_map.get((disease, crop_type))
 
             if existing_alert:
                 # Update jumlah kasus jika ada kasus baru

@@ -1,5 +1,3 @@
-"""Endpoint forum community — posts, komentar, like."""
-
 import uuid
 
 from fastapi import APIRouter, Depends, Query, status
@@ -40,8 +38,6 @@ async def get_optional_user(
     return await get_user_by_id(user_id, db)
 
 
-# ─── Posts ─────────────────────────────────────────────────────────────────────
-
 @router.get("/posts", response_model=SuccessResponse[list[PostResponse]])
 async def list_posts(
     page: int = Query(default=1, ge=1),
@@ -51,7 +47,6 @@ async def list_posts(
     db: AsyncSession = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ) -> SuccessResponse[list[PostResponse]]:
-    """Daftar post — publik, dengan pagination dan filter."""
     import math
     user_id = current_user.id if current_user else None
     posts_data, total = await community_service.list_posts(
@@ -60,14 +55,14 @@ async def list_posts(
 
     response_list = [
         PostResponse(
-            **{k: v for k, v in vars(item["post"]).items() if not k.startswith("_")},
+            **PostResponse.model_validate(item["post"]).model_dump(),
             author=AuthorInfo.model_validate(item["author"]) if item["author"] else AuthorInfo(id=item["post"].user_id, full_name="Pengguna"),
             is_liked=item["is_liked"],
         )
         for item in posts_data
     ]
 
-    total_pages = math.ceil(total / per_page) if total else 1
+    total_pages = math.ceil(total / per_page) if total > 0 else 0
     meta = PostListMeta(page=page, per_page=per_page, total=total, total_pages=total_pages)
 
     return SuccessResponse(data=response_list, meta=meta.model_dump())
@@ -79,11 +74,10 @@ async def create_post(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> SuccessResponse[PostResponse]:
-    """Buat post baru. Memerlukan login."""
     post = await community_service.create_post(payload, current_user.id, db)
     return SuccessResponse(
         data=PostResponse(
-            **{k: v for k, v in vars(post).items() if not k.startswith("_")},
+            **PostResponse.model_validate(post).model_dump(),
             author=AuthorInfo(id=current_user.id, full_name=current_user.full_name),
             is_liked=False,
         )
@@ -96,7 +90,6 @@ async def get_post(
     db: AsyncSession = Depends(get_db),
     current_user: User | None = Depends(get_optional_user),
 ) -> SuccessResponse[PostDetailResponse]:
-    """Detail post beserta komentar."""
     user_id = current_user.id if current_user else None
     post, author, is_liked, comments_data = await community_service.get_post_detail(
         post_id, db, user_id
@@ -104,7 +97,7 @@ async def get_post(
 
     comments = [
         CommentResponse(
-            **{k: v for k, v in vars(c).items() if not k.startswith("_")},
+            **CommentResponse.model_validate(c).model_dump(),
             author=AuthorInfo.model_validate(ca) if ca else AuthorInfo(id=c.user_id, full_name="Pengguna"),
         )
         for c, ca in comments_data
@@ -112,7 +105,7 @@ async def get_post(
 
     return SuccessResponse(
         data=PostDetailResponse(
-            **{k: v for k, v in vars(post).items() if not k.startswith("_")},
+            **PostDetailResponse.model_validate(post).model_dump(),
             author=AuthorInfo.model_validate(author) if author else AuthorInfo(id=post.user_id, full_name="Pengguna"),
             is_liked=is_liked,
             comments=comments,
@@ -126,11 +119,8 @@ async def delete_post(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    """Hapus post milik sendiri."""
     await community_service.delete_post(post_id, current_user.id, db)
 
-
-# ─── Comments ──────────────────────────────────────────────────────────────────
 
 @router.post("/posts/{post_id}/comments", response_model=SuccessResponse[CommentResponse], status_code=status.HTTP_201_CREATED)
 async def create_comment(
@@ -139,11 +129,10 @@ async def create_comment(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> SuccessResponse[CommentResponse]:
-    """Tambah komentar ke post. Memerlukan login."""
     comment = await community_service.create_comment(post_id, payload, current_user.id, db)
     return SuccessResponse(
         data=CommentResponse(
-            **{k: v for k, v in vars(comment).items() if not k.startswith("_")},
+            **CommentResponse.model_validate(comment).model_dump(),
             author=AuthorInfo(id=current_user.id, full_name=current_user.full_name),
         )
     )
@@ -155,11 +144,8 @@ async def delete_comment(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    """Hapus komentar milik sendiri."""
     await community_service.delete_comment(comment_id, current_user.id, db)
 
-
-# ─── Likes ─────────────────────────────────────────────────────────────────────
 
 @router.post("/posts/{post_id}/like", response_model=SuccessResponse[dict])
 async def toggle_like(
@@ -167,6 +153,5 @@ async def toggle_like(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> SuccessResponse[dict]:
-    """Toggle like/unlike pada post. Memerlukan login."""
     is_liked = await community_service.toggle_like(post_id, current_user.id, db)
     return SuccessResponse(data={"liked": is_liked})

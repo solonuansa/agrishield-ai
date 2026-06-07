@@ -12,6 +12,8 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 # Nama penyakit yang ramah dibaca — untuk dimasukkan ke prompt
+# Key disease names HARUS sinkron dengan CLASS_NAMES_RICE / CLASS_NAMES_CORN
+# di ml-service/app/config.py (source of truth untuk key disease)
 DISEASE_DISPLAY_NAMES: dict[str, str] = {
     "rice_leaf_blast": "Blast Padi (Magnaporthe oryzae)",
     "rice_bacterial_leaf_blight": "Hawar Daun Bakteri (Xanthomonas oryzae)",
@@ -113,17 +115,22 @@ async def get_recommendation(
 
     try:
         model = _get_client()
-        # Gemini SDK adalah sync — jalankan di thread pool agar tidak blokir event loop
         import asyncio
-        loop = asyncio.get_event_loop()
-        response = await loop.run_in_executor(
-            None,
-            lambda: model.generate_content(prompt),
+        response = await asyncio.wait_for(
+            asyncio.to_thread(model.generate_content, prompt),
+            timeout=30.0,
         )
         recommendation = response.text
         logger.info(f"Rekomendasi Gemini berhasil untuk penyakit: {disease}")
         return recommendation
 
+    except asyncio.TimeoutError:
+        logger.error(f"Gemini API timeout untuk penyakit: {disease}")
+        disease_name = DISEASE_DISPLAY_NAMES.get(disease, disease)
+        return (
+            f"## {disease_name}\n\n"
+            f"Layanan rekomendasi sedang sibuk. Silakan coba lagi nanti."
+        )
     except Exception as exc:
         logger.error(f"Gemini API error untuk penyakit {disease}: {exc}")
         # Fallback ringan — jangan gagalkan seluruh scan hanya karena rekomendasi gagal

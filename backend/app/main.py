@@ -7,12 +7,17 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from app.api import api_router
 from app.core.config import settings
 from app.core.logging import setup_logging
 
 logger = logging.getLogger(__name__)
+
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title="AgriShield AI API",
@@ -21,6 +26,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Setup logging terstruktur — pasang middleware request ID paling awal
 setup_logging(app, log_level=settings.log_level)
@@ -84,4 +92,11 @@ async def on_shutdown():
     logger.info("AgriShield API shutting down — membersihkan koneksi...")
     from app.core.database import engine
     engine.dispose()
+    from app.core.cache import get_redis
+    try:
+        r = get_redis()
+        await r.aclose()
+        logger.info("Koneksi Redis ditutup.")
+    except Exception as exc:
+        logger.warning(f"Gagal menutup koneksi Redis: {exc}")
     logger.info("Koneksi database ditutup.")

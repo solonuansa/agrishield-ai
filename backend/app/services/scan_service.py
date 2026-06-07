@@ -200,7 +200,19 @@ def build_scan_response_dict(scan: Scan) -> dict:
     Menyertakan image_url yang di-build dari image_key.
     """
     return {
-        **{c.key: getattr(scan, c.key) for c in scan.__table__.columns},
+        "id": scan.id,
+        "user_id": scan.user_id,
+        "crop_type": scan.crop_type,
+        "image_key": scan.image_key,
+        "status": scan.status,
+        "latitude": scan.latitude,
+        "longitude": scan.longitude,
+        "province": scan.province,
+        "city": scan.city,
+        "celery_task_id": scan.celery_task_id,
+        "error_message": scan.error_message,
+        "created_at": scan.created_at,
+        "updated_at": scan.updated_at,
         "image_url": get_public_url(scan.image_key),
         "result": scan.result,
     }

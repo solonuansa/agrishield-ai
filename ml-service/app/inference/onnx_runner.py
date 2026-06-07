@@ -1,9 +1,4 @@
-"""
-ONNX inference runner.
-Digunakan saat USE_MOCK_MODEL=false dan file .onnx sudah tersedia.
-Mendukung dua model terpisah: padi & jagung.
-"""
-
+import asyncio
 import logging
 from typing import Any
 
@@ -14,55 +9,53 @@ from app.schemas import AlternativeDiagnosis, PredictionResponse
 
 logger = logging.getLogger(__name__)
 
-# Dictionary untuk menyimpan session per model (lazy-load)
 _sessions: dict[str, Any] = {}
+_lock: asyncio.Lock = asyncio.Lock()
 
 
-def _get_session(crop_type: str):
-    """Lazy-load ONNX session berdasarkan crop_type."""
+async def _get_session(crop_type: str):
     global _sessions
 
     if crop_type not in _sessions:
-        import onnxruntime as ort
+        async with _lock:
+            if crop_type not in _sessions:
+                import onnxruntime as ort
 
-        model_path = (
-            settings.rice_model_path
-            if crop_type == "rice"
-            else settings.corn_model_path
-        )
-        logger.info(f"Memuat model ONNX untuk {crop_type} dari {model_path}")
-        _sessions[crop_type] = ort.InferenceSession(
-            model_path,
-            providers=["CPUExecutionProvider"],
-        )
-        logger.info(f"Model ONNX untuk {crop_type} berhasil dimuat")
+                model_path = (
+                    settings.rice_model_path
+                    if crop_type == "rice"
+                    else settings.corn_model_path
+                )
+                logger.info(f"Memuat model ONNX untuk {crop_type} dari {model_path}")
+                _sessions[crop_type] = ort.InferenceSession(
+                    model_path,
+                    providers=["CPUExecutionProvider"],
+                )
+                logger.info(f"Model ONNX untuk {crop_type} berhasil dimuat")
 
     return _sessions[crop_type]
 
 
-def predict_onnx(image_array: np.ndarray, crop_type: str) -> PredictionResponse:
-    """
-    Jalankan inferensi ONNX.
-    image_array harus sudah di-preprocess: shape [1, 3, 300, 300]
-    """
-    session = _get_session(crop_type)
+def _run_session(session: Any, input_name: str, image_array: np.ndarray) -> np.ndarray:
+    outputs = session.run(None, {input_name: image_array})
+    return outputs[0][0]
+
+
+async def predict_onnx(image_array: np.ndarray, crop_type: str) -> PredictionResponse:
+    session = await _get_session(crop_type)
     input_name = session.get_inputs()[0].name
 
-    outputs = session.run(None, {input_name: image_array})
-    logits = outputs[0][0]
+    logits = await asyncio.to_thread(_run_session, session, input_name, image_array)
 
-    # Softmax
     exp_logits = np.exp(logits - np.max(logits))
     probabilities = exp_logits / exp_logits.sum()
 
-    # Pilih class names yang sesuai crop_type
     class_names = CLASS_NAMES_RICE if crop_type == "rice" else CLASS_NAMES_CORN
     valid_probs = [(i, float(probabilities[i])) for i in range(len(class_names))]
     valid_probs.sort(key=lambda x: x[1], reverse=True)
 
     top_idx, top_conf = valid_probs[0]
 
-    # Jika confidence di bawah threshold, kembalikan "healthy" sebagai fallback
     if top_conf < settings.confidence_threshold:
         healthy_key = f"{crop_type}_healthy"
         if healthy_key in class_names:

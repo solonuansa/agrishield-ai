@@ -7,6 +7,9 @@ RUN npm install
 
 COPY . .
 
+RUN adduser -D -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0

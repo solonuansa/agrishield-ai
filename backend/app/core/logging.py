@@ -1,5 +1,3 @@
-"""Structured logging configuration untuk AgriShield API."""
-
 import json
 import logging
 import time
@@ -12,8 +10,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 
 class RequestIDFilter(logging.Filter):
-    """Filter logging yang menambahkan request_id ke setiap log record."""
-
     def __init__(self) -> None:
         super().__init__()
         self._request_id: str = ""
@@ -26,24 +22,16 @@ class RequestIDFilter(logging.Filter):
         return True
 
 
-# Instance global dari filter — digunakan oleh middleware dan logger
 request_id_filter = RequestIDFilter()
 
 
 class StructuredLoggingMiddleware(BaseHTTPMiddleware):
-    """
-    Middleware yang:
-    1. Memberi setiap request X-Request-ID (UUID).
-    2. Mencatat method, path, status, duration, request_id.
-    """
-
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         request_id = request.headers.get("X-Request-ID", uuid.uuid4().hex[:12])
         request.state.request_id = request_id
 
-        # Pasang request_id di filter logging supaya semua log di request ini kebawa
         request_id_filter.set_request_id(request_id)
 
         start = time.monotonic()
@@ -60,20 +48,22 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
             "status": response.status_code,
             "duration_ms": duration_ms,
         }
-        logger.info("%s %s → %s (%dms)", request.method, request.url.path, response.status_code, duration_ms, extra=extra)
+        logger.info(
+            "%s %s \u2192 %s (%dms)",
+            request.method,
+            request.url.path,
+            response.status_code,
+            duration_ms,
+            extra=extra,
+        )
 
         return response
 
 
 def setup_logging(app: FastAPI, log_level: str = "INFO") -> None:
-    """
-    Konfigurasi logging terstruktur (JSON) untuk AgriShield API.
-    """
-    # Root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(getattr(logging, log_level.upper(), logging.INFO))
 
-    # Hapus handler default agar tidak dobel
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
@@ -81,21 +71,16 @@ def setup_logging(app: FastAPI, log_level: str = "INFO") -> None:
     handler.setFormatter(_JsonFormatter())
     root_logger.addHandler(handler)
 
-    # Pasang request_id filter
     root_logger.addFilter(request_id_filter)
 
-    # Set level untuk logger pihak ketiga yang bawel
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("botocore").setLevel(logging.WARNING)
 
-    # Register middleware — pasang paling awal
     app.add_middleware(StructuredLoggingMiddleware)
 
 
 class _JsonFormatter(logging.Formatter):
-    """Format log sebagai JSON untuk agregasi di log system."""
-
     def format(self, record: logging.LogRecord) -> str:
         log_entry: dict[str, Any] = {
             "timestamp": self.formatTime(record, self.datefmt),
@@ -103,9 +88,14 @@ class _JsonFormatter(logging.Formatter):
             "logger": record.name,
             "message": record.getMessage(),
             "request_id": getattr(record, "request_id", "-"),
+            "method": getattr(record, "method", None),
+            "path": getattr(record, "path", None),
+            "status": getattr(record, "status", None),
+            "duration_ms": getattr(record, "duration_ms", None),
         }
         if record.exc_info and record.exc_info[0]:
             log_entry["exception"] = self.formatException(record.exc_info)
-        if hasattr(record, "extra"):
-            log_entry.update(record.extra)  # type: ignore[arg-type]
-        return json.dumps(log_entry, default=str)
+        return json.dumps(
+            {k: v for k, v in log_entry.items() if v is not None},
+            default=str,
+        )

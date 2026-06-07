@@ -72,3 +72,21 @@ def decode_refresh_token(token: str) -> str | None:
         return payload.get("sub")
     except JWTError:
         return None
+
+
+def get_token_jti(token: str) -> str | None:
+    """Ambil JWT ID dari token. Digunakan untuk blacklist/rotation."""
+    try:
+        payload = jwt.decode(
+            token,
+            settings.secret_key,
+            algorithms=[ALGORITHM],
+            options={"verify_exp": False},
+        )
+        jti = payload.get("jti")
+        if jti:
+            return jti
+        import hashlib
+        return hashlib.sha256(token.encode()).hexdigest()[:16]
+    except JWTError:
+        return None

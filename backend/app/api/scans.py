@@ -7,8 +7,11 @@ from typing import Optional
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
+from app.core.security import decode_access_token
 from app.models.user import User
 from app.schemas.common import SuccessResponse
 from app.schemas.scan import ScanListMeta, ScanResponse
@@ -23,6 +26,21 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+_optional_bearer = HTTPBearer(auto_error=False)
+
+
+async def get_optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_optional_bearer),
+    db: AsyncSession = Depends(get_db),
+) -> User | None:
+    if not credentials:
+        return None
+    user_id = decode_access_token(credentials.credentials)
+    if not user_id:
+        return None
+    from app.services.user_service import get_user_by_id
+    return await get_user_by_id(user_id, db)
+
 
 @router.post("", response_model=SuccessResponse[ScanResponse], status_code=201)
 async def create_scan_endpoint(
@@ -31,12 +49,11 @@ async def create_scan_endpoint(
     latitude: Optional[float] = Form(None),
     longitude: Optional[float] = Form(None),
     db: AsyncSession = Depends(get_db),
-    # Scan bisa dilakukan tanpa login — current_user opsional
-    # Gunakan try/except karena HTTPBearer raise 403 jika header tidak ada
+    current_user: User | None = Depends(get_optional_user),
 ) -> SuccessResponse[ScanResponse]:
     """
     Upload gambar tanaman dan mulai proses analisis penyakit.
-    Tidak memerlukan autentikasi (guest scan didukung).
+    Mendukung guest scan (tanpa login) maupun authenticated scan.
     Return scan_id untuk polling status via GET /scans/{id}.
     """
     if crop_type not in ("rice", "corn"):
@@ -48,35 +65,7 @@ async def create_scan_endpoint(
         crop_type=crop_type,
         latitude=latitude,
         longitude=longitude,
-        user_id=None,  # TODO: inject user_id jika token tersedia (opsional auth)
-        db=db,
-    )
-    return SuccessResponse(data=ScanResponse.model_validate(build_scan_response_dict(scan)))
-
-
-@router.post("/auth", response_model=SuccessResponse[ScanResponse], status_code=201)
-async def create_scan_authenticated(
-    file: UploadFile = File(...),
-    crop_type: str = Form(...),
-    latitude: Optional[float] = Form(None),
-    longitude: Optional[float] = Form(None),
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-) -> SuccessResponse[ScanResponse]:
-    """
-    Sama dengan POST /scans tapi memerlukan autentikasi.
-    Scan akan dikaitkan ke akun pengguna dan masuk ke riwayat.
-    """
-    if crop_type not in ("rice", "corn"):
-        from app.core.exceptions import BadRequestException
-        raise BadRequestException("crop_type harus 'rice' atau 'corn'")
-
-    scan = await create_scan(
-        file=file,
-        crop_type=crop_type,
-        latitude=latitude,
-        longitude=longitude,
-        user_id=current_user.id,
+        user_id=current_user.id if current_user else None,
         db=db,
     )
     return SuccessResponse(data=ScanResponse.model_validate(build_scan_response_dict(scan)))
@@ -107,7 +96,7 @@ async def list_user_scans(
         page=page,
         per_page=per_page,
         total=total,
-        total_pages=math.ceil(total / per_page) if total > 0 else 1,
+        total_pages=math.ceil(total / per_page) if total > 0 else 0,
     )
     return SuccessResponse(data=data, meta=meta.model_dump())
 

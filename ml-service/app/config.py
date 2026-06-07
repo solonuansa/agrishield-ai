@@ -6,6 +6,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
+    debug: bool = False
+    log_level: str = "INFO"
     use_mock_model: bool = True
     model_version: str = "v1"
 
@@ -19,8 +21,10 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# ── Kelas Padi (5 kelas) ─────────────────────────────────────
+# ── Kelas Padi (5 kelas) — SOURCE OF TRUTH ────────────────────
 # Urutan HARUS konsisten dengan training model padi
+# Key disease names HARUS sinkron dengan DISEASE_DISPLAY_NAMES
+# di backend/app/services/recommendation_service.py
 CLASS_NAMES_RICE = [
     "rice_leaf_blast",             # 0
     "rice_bacterial_leaf_blight",  # 1
