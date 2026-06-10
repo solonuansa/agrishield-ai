@@ -60,8 +60,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    # 4 worker untuk production — sesuaikan dengan jumlah CPU
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${UVICORN_WORKERS:-4}
 
   # ── Celery Worker ─────────────────────────────────────────
   worker:
@@ -79,7 +84,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: celery -A app.tasks.celery_app worker --loglevel=warning --concurrency=4
+    command: celery -A app.tasks.celery_app worker --loglevel=warning --concurrency=${CELERY_CONCURRENCY:-4}
 
   # ── ML Service ────────────────────────────────────────────
   ml-service:
@@ -90,7 +95,7 @@ services:
     environment:
       USE_MOCK_MODEL: ${USE_MOCK_MODEL:-false}
       ENVIRONMENT: production
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --workers 2
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --workers ${ML_WORKERS:-2}
 
   # ── Nginx (Reverse Proxy + Static Files) ──────────────────
   nginx:

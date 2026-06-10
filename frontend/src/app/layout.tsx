@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
-import "@/lib/animations.css";
-import Providers from "@/components/Providers";
+import "@/styles/animations.css";
+import Providers from "@/components/layout/Providers";
 import I18nProvider from "@/lib/i18n/I18nProvider";
 import { ToastContainer } from "@/components/ui/Toast";
 import Navbar from "@/components/layout/Navbar";

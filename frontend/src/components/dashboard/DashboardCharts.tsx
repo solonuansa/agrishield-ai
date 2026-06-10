@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   PieChart,
   Pie,
@@ -24,14 +25,16 @@ interface DashboardChartsProps {
 }
 
 export default function DashboardCharts({ stats }: DashboardChartsProps) {
+  const { t } = useTranslation();
+
   const cropData = useMemo(
     () =>
       stats?.by_crop.map((c) => ({
-        name: c.crop_type === "rice" ? "Padi" : "Jagung",
+        name: c.crop_type === "rice" ? t("crop.rice") : t("crop.corn"),
         value: c.count,
         disease: c.disease_count,
       })) ?? [],
-    [stats?.by_crop]
+    [stats, t],
   );
 
   const diseaseData = useMemo(
@@ -40,25 +43,24 @@ export default function DashboardCharts({ stats }: DashboardChartsProps) {
         name: d.disease,
         count: d.count,
       })) ?? [],
-    [stats?.top_diseases]
+    [stats],
   );
 
   const timelineData = useMemo(
     () =>
-      stats?.timeline.map((t) => ({
-        month: t.month.slice(0, 7),
-        scan: t.count,
-        disease: t.disease_count,
+      stats?.timeline.map((p) => ({
+        month: p.month,
+        total: p.count,
+        disease: p.disease_count,
       })) ?? [],
-    [stats?.timeline]
+    [stats],
   );
 
   return (
     <div className="mt-10 grid gap-6 lg:grid-cols-2">
-      {/* Pie — Crop distribution */}
       <div className="rounded border border-cream-darker bg-cream-dark/30 p-5">
-        <h3 className="mb-1 text-sm font-medium text-ink-soft">Distribusi Tanaman</h3>
-        <p className="mb-4 text-xs text-ink-muted">Perbandingan scan berdasarkan jenis tanaman</p>
+        <h3 className="mb-1 text-sm font-medium text-ink-soft">{t("dashboard.chartCropDistTitle")}</h3>
+        <p className="mb-4 text-xs text-ink-muted">{t("dashboard.chartCropDistDesc")}</p>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -85,7 +87,7 @@ export default function DashboardCharts({ stats }: DashboardChartsProps) {
                 formatter={(value, _name, props) => {
                   const diseaseCount =
                     (props?.payload as { disease?: number } | undefined)?.disease ?? 0;
-                  return [`${value} scan (${diseaseCount} penyakit)`, _name];
+                  return [t("dashboard.chartScanCount", { count: value, diseaseCount }), _name];
                 }}
               />
             </PieChart>
@@ -104,10 +106,9 @@ export default function DashboardCharts({ stats }: DashboardChartsProps) {
         </div>
       </div>
 
-      {/* Bar — Top diseases */}
       <div className="rounded border border-cream-darker bg-cream-dark/30 p-5">
-        <h3 className="mb-1 text-sm font-medium text-ink-soft">Penyakit Terbanyak</h3>
-        <p className="mb-4 text-xs text-ink-muted">Jenis penyakit yang paling sering terdeteksi</p>
+        <h3 className="mb-1 text-sm font-medium text-ink-soft">{t("dashboard.chartTopDiseaseTitle")}</h3>
+        <p className="mb-4 text-xs text-ink-muted">{t("dashboard.chartTopDiseaseDesc")}</p>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={diseaseData} layout="vertical" margin={{ left: 10, right: 10 }}>
@@ -135,60 +136,41 @@ export default function DashboardCharts({ stats }: DashboardChartsProps) {
         </div>
       </div>
 
-      {/* Area — Timeline */}
       <div className="rounded border border-cream-darker bg-cream-dark/30 p-5 lg:col-span-2">
-        <h3 className="mb-1 text-sm font-medium text-ink-soft">Trend Scan Bulanan</h3>
-        <p className="mb-4 text-xs text-ink-muted">Volume scan dan deteksi penyakit per bulan</p>
+        <h3 className="mb-1 text-sm font-medium text-ink-soft">{t("dashboard.chartTimelineTitle")}</h3>
+        <p className="mb-4 text-xs text-ink-muted">{t("dashboard.chartTimelineDesc")}</p>
         <div className="h-60">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={timelineData} margin={{ left: 0, right: 10 }}>
               <defs>
-                <linearGradient id="colorScan" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3f6e47" stopOpacity={0.15} />
                   <stop offset="95%" stopColor="#3f6e47" stopOpacity={0} />
                 </linearGradient>
-                <linearGradient id="colorDisease" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="diseaseGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#b85c38" stopOpacity={0.15} />
                   <stop offset="95%" stopColor="#b85c38" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2dcd0" vertical={false} />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11, fill: "#8c7b6c" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: "#8c7b6c" }}
-                axisLine={false}
-                tickLine={false}
-                allowDecimals={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: 6,
-                  border: "1px solid #e2dcd0",
-                  fontSize: 12,
-                }}
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2dcd0" />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#5c5348" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: "#5c5348" }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: 6, border: "1px solid #e2dcd0", fontSize: 12 }} />
               <Area
                 type="monotone"
-                dataKey="scan"
+                dataKey="total"
                 stroke="#3f6e47"
                 strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorScan)"
-                name="Total Scan"
+                fill="url(#totalGrad)"
+                name={t("dashboard.chartTotalScan")}
               />
               <Area
                 type="monotone"
                 dataKey="disease"
                 stroke="#b85c38"
                 strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorDisease)"
-                name="Penyakit"
+                fill="url(#diseaseGrad)"
+                name={t("dashboard.chartDisease")}
               />
             </AreaChart>
           </ResponsiveContainer>

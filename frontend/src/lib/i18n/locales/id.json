@@ -238,7 +238,16 @@
     "emptyHistoryDesc": "Riwayat scan Anda akan muncul di sini.",
     "loadError": "Gagal memuat riwayat scan.",
     "loadErrorStats": "Gagal memuat statistik dashboard.",
-    "processing": "Sedang diproses"
+    "processing": "Sedang diproses",
+    "chartCropDistTitle": "Distribusi Tanaman",
+    "chartCropDistDesc": "Perbandingan scan berdasarkan jenis tanaman",
+    "chartTopDiseaseTitle": "Penyakit Terbanyak",
+    "chartTopDiseaseDesc": "Jenis penyakit yang paling sering terdeteksi",
+    "chartTimelineTitle": "Tren Scan Bulanan",
+    "chartTimelineDesc": "Volume scan dan deteksi penyakit per bulan",
+    "chartTotalScan": "Total Scan",
+    "chartDisease": "Penyakit",
+    "chartScanCount": "{{count}} scan ({{diseaseCount}} penyakit)"
   },
   "scan": {
     "back": "Kembali",

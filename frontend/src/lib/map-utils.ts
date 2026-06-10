@@ -1,6 +1,6 @@
 import type { BadgeVariant } from "@/components/ui/Badge";
 
-export function useCropOptions(t: (key: string) => string) {
+export function getCropOptions(t: (key: string) => string) {
   return [
     { value: "all", label: t("map.allCrops") },
     { value: "rice", label: t("crop.rice") },
@@ -16,6 +16,12 @@ export function confidenceColor(confidence: number) {
   if (confidence >= 0.85) return "#b91c1c";
   if (confidence >= 0.5) return "#a16207";
   return "#15803d";
+}
+
+export function confidenceLabel(confidence: number) {
+  if (confidence >= 0.85) return "Tinggi";
+  if (confidence >= 0.5) return "Sedang";
+  return "Rendah";
 }
 
 export function diseaseBadgeVariant(disease: string): BadgeVariant {

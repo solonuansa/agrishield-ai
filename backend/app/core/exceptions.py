@@ -37,3 +37,10 @@ class MLServiceUnavailableException(HTTPException):
         super().__init__(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=detail
         )
+
+
+class StorageServiceException(HTTPException):
+    def __init__(self, detail: str = "Layanan penyimpanan tidak tersedia"):
+        super().__init__(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail=detail
+        )

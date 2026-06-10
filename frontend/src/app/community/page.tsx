@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import { apiGet } from "@/lib/api";
 import { getAccessToken, readSession } from "@/lib/auth";
-import { MOCK_COMMUNITY_POSTS } from "@/lib/mock-community";
+import { MOCK_COMMUNITY_POSTS } from "@/lib/mocks/mock-community";
 import { formatDateID } from "@/lib/ui";
 import type { CommunityPost } from "@/types/api";
 import { PageHeader } from "@/components/ui/PageHeader";

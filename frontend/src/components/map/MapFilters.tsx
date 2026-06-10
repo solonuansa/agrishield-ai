@@ -3,7 +3,7 @@
 import { useTranslation } from "react-i18next";
 import { SlidersHorizontal } from "lucide-react";
 import { Select } from "@/components/ui/Select";
-import { useCropOptions } from "@/lib/map-utils";
+import { getCropOptions } from "@/lib/map-utils";
 
 interface MapFiltersProps {
   cropFilter: "all" | "rice" | "corn";
@@ -25,7 +25,7 @@ export function MapFilters({
   uniqueDiseases,
 }: MapFiltersProps) {
   const { t } = useTranslation();
-  const CROP_OPTIONS = useCropOptions(t);
+  const CROP_OPTIONS = getCropOptions(t);
 
   return (
     <div className="mt-6 flex flex-wrap items-center gap-4">

@@ -16,6 +16,9 @@ async def mock_predict(crop_type: str) -> PredictionResponse:
     Pilih penyakit acak dari kelas yang sesuai dengan crop_type,
     dengan distribusi confidence yang realistis.
     """
+    crop_type = crop_type.lower()
+    # Seed deterministik agar hasil mock konsisten per crop_type
+    random.seed(f"agrishield-mock-{crop_type}")
     # Simulasi latency inferensi: 0.5 – 2 detik
     await asyncio.sleep(random.uniform(0.5, 2.0))
 

@@ -84,6 +84,12 @@ async def on_startup():
     logger.info(f"AgriShield API started — environment: {settings.environment}")
     logger.info(f"ML service URL: {settings.ml_service_url}")
     logger.info(f"Mock model: {settings.use_mock_model}")
+    from app.core.cache import init_redis
+    try:
+        await init_redis()
+        logger.info("Koneksi Redis berhasil dibuat.")
+    except Exception as exc:
+        logger.warning(f"Redis gagal diinisialisasi: {exc}")
 
 
 @app.on_event("shutdown")
@@ -98,5 +104,5 @@ async def on_shutdown():
         await r.aclose()
         logger.info("Koneksi Redis ditutup.")
     except Exception as exc:
-        logger.warning(f"Gagal menutup koneksi Redis: {exc}")
+        logger.warning(f"Redis client belum dibuat: {exc}")
     logger.info("Koneksi database ditutup.")

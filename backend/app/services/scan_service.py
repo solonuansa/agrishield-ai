@@ -9,7 +9,7 @@ from PIL import Image
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import BadRequestException, NotFoundException
+from app.core.exceptions import BadRequestException, NotFoundException, StorageServiceException
 from app.models.scan import Scan, ScanResult
 from app.services.storage_service import get_public_url, upload_scan_image
 
@@ -97,7 +97,7 @@ async def create_scan(
         scan.status = "failed"
         scan.error_message = "Gagal mengunggah gambar ke storage."
         await db.flush()
-        raise BadRequestException("Gagal mengunggah gambar. Silakan coba lagi.")
+        raise StorageServiceException("Gagal mengunggah gambar ke penyimpanan. Silakan coba lagi.")
 
     # Antrekan analisis async
     from app.tasks.scan_tasks import analyze_scan

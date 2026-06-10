@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { HeatmapResponse, HeatmapPoint } from "@/types/api";
-import { DUMMY_HEATMAP } from "@/lib/mock-map-data";
+import { DUMMY_HEATMAP } from "@/lib/mocks/mock-map-data";
 import { MapStats } from "@/components/map/MapStats";
 import { MapFilters } from "@/components/map/MapFilters";
 import { DiseaseList } from "@/components/map/DiseaseList";
@@ -66,7 +66,7 @@ export default function MapPage() {
     () => allPoints.filter((p) => p.confidence >= 0.85).length,
     [allPoints]
   );
-  const provinces = useMemo(
+  const uniqueLocations = useMemo(
     () => new Set(allPoints.map((p) => `${p.lat.toFixed(1)}:${p.lng.toFixed(1)}`)).size,
     [allPoints]
   );
@@ -81,7 +81,7 @@ export default function MapPage() {
       <MapStats
         allPointsLength={allPoints.length}
         highRisk={highRisk}
-        provinces={provinces}
+        uniqueLocations={uniqueLocations}
       />
 
       <MapFilters

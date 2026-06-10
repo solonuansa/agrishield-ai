@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
@@ -32,6 +32,13 @@ export default function ScanPage() {
   const [coords, setCoords] = useState<{ latitude?: number; longitude?: number }>({});
   const toast = useToast();
   const previewUrlRef = useRef<string | null>(null);
+  const scanPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (scanPollRef.current) clearInterval(scanPollRef.current);
+    };
+  }, []);
 
   const statusLabelMap: Record<string, string> = {
     completed: t("scan.statusCompleted"),
@@ -123,19 +130,30 @@ export default function ScanPage() {
 
       setScanData(data);
 
+      let pollCount = 0;
+      const MAX_POLL_RETRIES = 60;
       const pollInterval = setInterval(async () => {
+        pollCount++;
         try {
           const updated = await apiGet<ScanResponse>(`/scans/${data.id}`);
           if (updated.status !== "processing" && updated.status !== "pending") {
             setScanData(updated);
             clearInterval(pollInterval);
             setIsSubmitting(false);
+            return;
           }
         } catch {
           clearInterval(pollInterval);
           setIsSubmitting(false);
+          return;
+        }
+        if (pollCount >= MAX_POLL_RETRIES) {
+          clearInterval(pollInterval);
+          setIsSubmitting(false);
+          setErrorMessage(t("scan.timeoutError"));
         }
       }, 2000);
+      scanPollRef.current = pollInterval;
     } catch (error) {
       if (error instanceof ApiError) {
         setErrorMessage(error.message);

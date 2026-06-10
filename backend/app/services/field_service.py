@@ -3,10 +3,10 @@
 import logging
 import uuid
 
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ForbiddenException, NotFoundException
 from app.models.field import Field
 from app.schemas.field import FieldCreate, FieldUpdate
 
@@ -80,8 +80,8 @@ async def _get_owned_field(
     field = result.scalar_one_or_none()
 
     if not field:
-        raise HTTPException(status_code=404, detail="Lahan tidak ditemukan")
+        raise NotFoundException("Lahan tidak ditemukan")
     if field.user_id != user_id:
-        raise HTTPException(status_code=403, detail="Anda tidak memiliki akses ke lahan ini")
+        raise ForbiddenException("Anda tidak memiliki akses ke lahan ini")
 
     return field

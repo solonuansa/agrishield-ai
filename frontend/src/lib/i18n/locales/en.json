@@ -238,7 +238,16 @@
     "emptyHistoryDesc": "Your scan history will appear here.",
     "loadError": "Failed to load scan history.",
     "loadErrorStats": "Failed to load dashboard statistics.",
-    "processing": "Processing"
+    "processing": "Processing",
+    "chartCropDistTitle": "Crop Distribution",
+    "chartCropDistDesc": "Scan breakdown by crop type",
+    "chartTopDiseaseTitle": "Top Diseases",
+    "chartTopDiseaseDesc": "Most frequently detected diseases",
+    "chartTimelineTitle": "Monthly Scan Trend",
+    "chartTimelineDesc": "Scan volume and disease detection per month",
+    "chartTotalScan": "Total Scan",
+    "chartDisease": "Disease",
+    "chartScanCount": "{{count}} scans ({{diseaseCount}} diseases)"
   },
   "scan": {
     "back": "Back",

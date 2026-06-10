@@ -9,10 +9,10 @@ import { StatCard } from "@/components/ui/StatCard";
 interface MapStatsProps {
   allPointsLength: number;
   highRisk: number;
-  provinces: number;
+  uniqueLocations: number;
 }
 
-export function MapStats({ allPointsLength, highRisk, provinces }: MapStatsProps) {
+export function MapStats({ allPointsLength, highRisk, uniqueLocations }: MapStatsProps) {
   const { t } = useTranslation();
 
   return (
@@ -45,7 +45,7 @@ export function MapStats({ allPointsLength, highRisk, provinces }: MapStatsProps
       <motion.div variants={staggerItem}>
         <StatCard
           label={t("map.uniqueClusters")}
-          value={provinces}
+          value={uniqueLocations}
           icon={<Compass size={18} />}
         />
       </motion.div>

@@ -85,7 +85,8 @@ async def _analyze_scan_async(task, scan_id: str) -> dict:
             # Invalidate caches
             from app.core.cache import delete_cache
             await delete_cache(f"dashboard:{scan.user_id}")
-            await delete_cache("heatmap:*")
+            from app.core.cache import delete_cache_pattern
+            await delete_cache_pattern("heatmap:*")
 
             logger.info(
                 f"Scan {scan_id} selesai: {prediction['disease']} "

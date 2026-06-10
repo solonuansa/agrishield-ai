@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft, Heart } from "lucide-react";
 import { apiGet, apiPost } from "@/lib/api";
 import { getAccessToken, readSession } from "@/lib/auth";
-import { getMockCommunityPostDetailById } from "@/lib/mock-community";
+import { getMockCommunityPostDetailById } from "@/lib/mocks/mock-community";
 import { formatDateID } from "@/lib/ui";
 import type { PostDetail } from "@/types/api";
 import { Badge } from "@/components/ui/Badge";

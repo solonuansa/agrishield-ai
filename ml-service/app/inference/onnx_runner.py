@@ -42,6 +42,7 @@ def _run_session(session: Any, input_name: str, image_array: np.ndarray) -> np.n
 
 
 async def predict_onnx(image_array: np.ndarray, crop_type: str) -> PredictionResponse:
+    crop_type = crop_type.lower()
     session = await _get_session(crop_type)
     input_name = session.get_inputs()[0].name
 

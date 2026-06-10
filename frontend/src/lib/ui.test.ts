@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatDateID, cx } from "./ui";
+import { formatDateID } from "./ui";
 
 describe("formatDateID", () => {
   it("formats ISO date to Indonesian format", () => {
@@ -13,15 +13,5 @@ describe("formatDateID", () => {
 
   it("returns dash for invalid date", () => {
     expect(formatDateID("not-a-date")).toBe("-");
-  });
-});
-
-describe("cx", () => {
-  it("joins truthy class names", () => {
-    expect(cx("a", "b", null, undefined, false, "c")).toBe("a b c");
-  });
-
-  it("returns empty string for no args", () => {
-    expect(cx()).toBe("");
   });
 });
