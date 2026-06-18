@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     # CORS
     allowed_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
+    # Feature flags
+    registration_open: bool = True
+    community_enabled: bool = True
+
     @property
     def is_development(self) -> bool:
         return self.environment == "development"

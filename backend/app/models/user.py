@@ -27,7 +27,6 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(50), nullable=False, default="farmer")
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     province: Mapped[str | None] = mapped_column(String(100), nullable=True)
     city: Mapped[str | None] = mapped_column(String(100), nullable=True)

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { clearSession, readSession } from "@/lib/auth";
@@ -23,20 +23,28 @@ const languages = [
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [session, setSession] = useState(() => readSession());
   const pathname = usePathname();
-  const session = readSession();
   const toast = useToast();
 
-  const links = linkDefs.map((link) => ({
-    ...link,
-    label: t(`nav.${link.key}`),
-  }));
+  const links = useMemo(
+    () => linkDefs.map((link) => ({ ...link, label: t(`nav.${link.key}`) })),
+    [t]
+  );
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 10);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
@@ -45,12 +53,9 @@ export default function Navbar() {
 
   const handleLogout = () => {
     clearSession();
+    setSession(null);
     toast.success(t("nav.logoutSuccess"));
-    setTimeout(() => {
-      if (typeof window !== "undefined") {
-        window.location.replace("/");
-      }
-    }, 300);
+    router.replace("/");
   };
 
   const isActive = (href: string) => {

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.cache import get_redis
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.exceptions import UnauthorizedException
+from app.core.exceptions import BadRequestException, UnauthorizedException
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -42,6 +42,8 @@ async def register(
     data: UserRegisterRequest,
     db: AsyncSession = Depends(get_db),
 ) -> SuccessResponse[TokenResponse]:
+    if not settings.registration_open:
+        raise BadRequestException("Pendaftaran sedang ditutup. Silakan hubungi administrator.")
     user = await register_user(data, db)
     return SuccessResponse(data=_build_token_response(user))
 

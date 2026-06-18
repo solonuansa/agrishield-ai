@@ -4,6 +4,7 @@ import { useCallback, useRef, useState, type DragEvent, type ChangeEvent, type K
 import Image from "next/image";
 import { Upload, Image as ImageIcon, X, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 interface FileUploadProps {
   onFile: (file: File) => void;
@@ -24,6 +25,7 @@ export function FileUpload({
   error,
   disabled = false,
 }: FileUploadProps) {
+  const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -35,13 +37,13 @@ export function FileUpload({
 
     const acceptedTypes = accept.split(",").map((t) => t.trim());
     if (!acceptedTypes.includes(file.type)) {
-      setLocalError("Format file tidak didukung. Gunakan JPEG, PNG, atau WebP.");
+      setLocalError(t("fileUpload.formatError"));
       return false;
     }
 
     const maxBytes = maxSizeMB * 1024 * 1024;
     if (file.size > maxBytes) {
-      setLocalError(`Ukuran file maksimal ${maxSizeMB} MB.`);
+      setLocalError(t("fileUpload.sizeError", { maxSize: maxSizeMB }));
       return false;
     }
 
@@ -121,7 +123,7 @@ export function FileUpload({
             <div
               role="button"
               tabIndex={0}
-              aria-label="Upload gambar"
+              aria-label={t("fileUpload.ariaLabel")}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -155,10 +157,10 @@ export function FileUpload({
                 </div>
               </motion.div>
               <p className="text-body text-ink font-medium mb-1">
-                {isDragging ? "Lepaskan gambar di sini" : "Seret & lepas gambar di sini"}
+                {isDragging ? t("fileUpload.dropHere") : t("fileUpload.dragHere")}
               </p>
               <p className="text-caption text-ink-muted">
-                atau klik untuk pilih file — JPEG, PNG, WebP (maks {maxSizeMB} MB)
+                {t("fileUpload.orClick", { maxSize: maxSizeMB })}
               </p>
             </div>
           </motion.div>

@@ -25,5 +25,5 @@ export function getStatusLabel(scan: ScanResponse, t: (key: string) => string): 
   if (scan.status === "failed") return t("scan.statusFailed_label");
   if (scan.status === "pending" || scan.status === "processing") return t("dashboard.processing");
   if (scan.result?.detected_disease) return scan.result.detected_disease;
-  return "Sehat";
+  return t("dashboard.healthyLabel");
 }

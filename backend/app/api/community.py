@@ -4,8 +4,10 @@ from fastapi import APIRouter, Depends, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
+from app.core.exceptions import ForbiddenException
 from app.core.security import decode_access_token
 from app.models.user import User
 from app.schemas.common import SuccessResponse
@@ -20,7 +22,12 @@ from app.schemas.community import (
 )
 from app.services import community_service
 
-router = APIRouter()
+def _community_enabled_check():
+    if not settings.community_enabled:
+        raise ForbiddenException("Fitur komunitas sedang dinonaktifkan. Silakan coba lagi nanti.")
+
+
+router = APIRouter(dependencies=[Depends(_community_enabled_check)])
 
 _optional_bearer = HTTPBearer(auto_error=False)
 

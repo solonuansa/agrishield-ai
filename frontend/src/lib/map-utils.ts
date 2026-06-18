@@ -18,10 +18,10 @@ export function confidenceColor(confidence: number) {
   return "#15803d";
 }
 
-export function confidenceLabel(confidence: number) {
-  if (confidence >= 0.85) return "Tinggi";
-  if (confidence >= 0.5) return "Sedang";
-  return "Rendah";
+export function confidenceLabel(confidence: number): string {
+  if (confidence >= 0.85) return "map.confidenceHigh";
+  if (confidence >= 0.5) return "map.confidenceMedium";
+  return "map.confidenceLow";
 }
 
 export function diseaseBadgeVariant(disease: string): BadgeVariant {

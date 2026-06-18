@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface PaginationProps {
   currentPage: number;
@@ -13,6 +14,7 @@ export default function Pagination({
   totalPages,
   onPageChange,
 }: PaginationProps) {
+  const { t } = useTranslation();
   if (totalPages <= 1) return null;
 
   const pages: (number | "...")[] = [];
@@ -31,12 +33,12 @@ export default function Pagination({
     "flex h-9 min-w-[2.25rem] items-center justify-center rounded text-sm font-medium transition-colors";
 
   return (
-    <nav aria-label="Paginasi" className="flex items-center justify-center gap-1">
+    <nav aria-label={t("pagination.navLabel")} className="flex items-center justify-center gap-1">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}
         className={`${btnBase} text-ink-muted hover:bg-cream-darker/40 disabled:cursor-not-allowed disabled:opacity-30`}
-        aria-label="Halaman sebelumnya"
+        aria-label={t("pagination.prevLabel")}
       >
         <ChevronLeft size={16} />
       </button>
@@ -66,7 +68,7 @@ export default function Pagination({
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
         className={`${btnBase} text-ink-muted hover:bg-cream-darker/40 disabled:cursor-not-allowed disabled:opacity-30`}
-        aria-label="Halaman selanjutnya"
+        aria-label={t("pagination.nextLabel")}
       >
         <ChevronRight size={16} />
       </button>

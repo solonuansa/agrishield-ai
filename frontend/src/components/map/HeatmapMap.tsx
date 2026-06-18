@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet.heat";
@@ -46,6 +47,7 @@ function FitBounds({ points }: { points: { lat: number; lng: number }[] }) {
 }
 
 export default function HeatmapMap({ points }: { points: HeatmapPoint[] }) {
+  const { t } = useTranslation();
   const heatData: Array<[number, number, number]> = useMemo(
     () => points.map((p) => [p.lat, p.lng, p.confidence]),
     [points],
@@ -86,8 +88,8 @@ export default function HeatmapMap({ points }: { points: HeatmapPoint[] }) {
             <Popup>
               <div className="text-sm">
                 <p className="font-semibold">{point.disease}</p>
-                <p>{toCropLabel(point.crop_type, (key: string) => key === "crop.rice" ? "Padi" : "Jagung")}</p>
-                <p>{confidenceLabel(point.confidence)} ({Math.round(point.confidence * 100)}%)</p>
+                <p>{toCropLabel(point.crop_type, t)}</p>
+                <p>{t(confidenceLabel(point.confidence))} ({Math.round(point.confidence * 100)}%)</p>
                 <p className="text-xs text-ink-muted">{formatDateID(`${point.month}-01`)}</p>
               </div>
             </Popup>

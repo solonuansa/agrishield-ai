@@ -62,7 +62,7 @@ async def upload_scan_image(file: UploadFile, scan_id: uuid.UUID, content: bytes
         raise
 
 
-def get_public_url(image_key: str) -> str | None:
+def get_public_url(image_key: str | None) -> str | None:
     if not settings.r2_public_url or not image_key:
         return None
     return f"{settings.r2_public_url.rstrip('/')}/{image_key}"

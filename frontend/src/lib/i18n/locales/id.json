@@ -13,6 +13,14 @@
     "noData": "Tidak Ada Data",
     "skipToContent": "Lewati ke konten utama"
   },
+  "fileUpload": {
+    "formatError": "Format file tidak didukung. Gunakan JPEG, PNG, atau WebP.",
+    "sizeError": "Ukuran file maksimal {{maxSize}} MB.",
+    "dropHere": "Lepaskan gambar di sini",
+    "dragHere": "Seret & lepas gambar di sini",
+    "orClick": "atau klik untuk pilih file — JPEG, PNG, WebP (maks {{maxSize}} MB)",
+    "ariaLabel": "Upload gambar"
+  },
   "crop": {
     "rice": "Padi",
     "corn": "Jagung",
@@ -247,7 +255,8 @@
     "chartTimelineDesc": "Volume scan dan deteksi penyakit per bulan",
     "chartTotalScan": "Total Scan",
     "chartDisease": "Penyakit",
-    "chartScanCount": "{{count}} scan ({{diseaseCount}} penyakit)"
+    "chartScanCount": "{{count}} scan ({{diseaseCount}} penyakit)",
+    "healthyLabel": "Sehat"
   },
   "scan": {
     "back": "Kembali",
@@ -261,6 +270,7 @@
     "locationDenied": "Izin lokasi ditolak",
     "locationUnavailable": "Lokasi tidak tersedia",
     "locationError": "Izin lokasi ditolak. Periksa pengaturan browser Anda.",
+    "geoDenied": "Izin lokasi ditolak",
     "geoNotSupported": "Browser tidak mendukung geolocation",
     "geoWarning": "Browser tidak mendukung geolokasi",
     "startAnalysis": "Mulai Analisis",
@@ -311,6 +321,9 @@
     "noPointsDesc": "Tidak ada titik yang cocok dengan filter. Ubah filter untuk melihat hasil.",
     "loadMore": "Muat Lebih Banyak ({{count}} tersisa)",
     "loadingMap": "Memuat peta…",
+    "confidenceHigh": "Tinggi",
+    "confidenceMedium": "Sedang",
+    "confidenceLow": "Rendah",
     "scanId": "Scan #{{id}}"
   },
   "history": {
@@ -419,6 +432,9 @@
     "closeNotification": "Tutup notifikasi"
   },
   "pagination": {
-    "page": "Halaman {{current}} dari {{total}}"
+    "page": "Halaman {{current}} dari {{total}}",
+    "navLabel": "Paginasi",
+    "prevLabel": "Halaman sebelumnya",
+    "nextLabel": "Halaman selanjutnya"
   }
 }

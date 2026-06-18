@@ -213,6 +213,6 @@ def build_scan_response_dict(scan: Scan) -> dict:
         "error_message": scan.error_message,
         "created_at": scan.created_at,
         "updated_at": scan.updated_at,
-        "image_url": get_public_url(scan.image_key),
+        "image_url": get_public_url(scan.image_key) if scan.image_key else None,
         "result": scan.result,
     }

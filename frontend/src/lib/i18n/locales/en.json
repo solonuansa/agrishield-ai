@@ -13,6 +13,14 @@
     "noData": "No Data",
     "skipToContent": "Skip to main content"
   },
+  "fileUpload": {
+    "formatError": "File format not supported. Use JPEG, PNG, or WebP.",
+    "sizeError": "Maximum file size is {{maxSize}} MB.",
+    "dropHere": "Release image here",
+    "dragHere": "Drag & drop image here",
+    "orClick": "or click to select — JPEG, PNG, WebP (max {{maxSize}} MB)",
+    "ariaLabel": "Upload image"
+  },
   "crop": {
     "rice": "Rice",
     "corn": "Corn",
@@ -247,7 +255,8 @@
     "chartTimelineDesc": "Scan volume and disease detection per month",
     "chartTotalScan": "Total Scan",
     "chartDisease": "Disease",
-    "chartScanCount": "{{count}} scans ({{diseaseCount}} diseases)"
+    "chartScanCount": "{{count}} scans ({{diseaseCount}} diseases)",
+    "healthyLabel": "Healthy"
   },
   "scan": {
     "back": "Back",
@@ -261,6 +270,7 @@
     "locationDenied": "Location permission denied",
     "locationUnavailable": "Location unavailable",
     "locationError": "Location permission denied. Check your browser settings.",
+    "geoDenied": "Location permission denied",
     "geoNotSupported": "Browser does not support geolocation",
     "geoWarning": "Browser does not support geolocation",
     "startAnalysis": "Start Analysis",
@@ -288,6 +298,20 @@
     "refreshStatus": "Refresh Status",
     "resultNotReady": "Result not ready yet. Click the button below to check the latest status.",
     "statusCompleted": "Completed",
+    "step1": "Step 1 — Choose Crop",
+    "step1Description": "Select the type of plant you want to scan.",
+    "step2": "Step 2 — Upload Photo",
+    "step2Description": "Take a photo of the affected leaf. Make sure the symptoms are clearly visible.",
+    "step3": "Step 3 — Add Location",
+    "step3Description": "Helps track disease spread in your area.",
+    "geoDenied": "Location permission denied",
+    "uploadError": "Failed to upload image. Please try again.",
+    "timeoutError": "Analysis is taking longer than expected. Please try again later.",
+    "refreshError": "Failed to refresh scan status.",
+    "riceTipTitle": "Rice Leaf Photo Tips",
+    "riceTipBody": "Focus on the leaf that shows symptoms. Use the camera 15-20 cm from the leaf surface. Make sure lighting is even and your hand doesn't shake.",
+    "cornTipBody": "Focus on the leaf that shows symptoms. For corn, take the photo from the underside of the leaf as symptoms often start there. Use the camera 15-20 cm away.",
+    "statusCompleted": "Completed",
     "statusProcessing": "Processing",
     "statusFailed_label": "Failed",
     "statusPending": "Pending"
@@ -311,6 +335,9 @@
     "noPointsDesc": "No points match the filter. Adjust filters to see results.",
     "loadMore": "Load More ({{count}} remaining)",
     "loadingMap": "Loading map…",
+    "confidenceHigh": "High",
+    "confidenceMedium": "Medium",
+    "confidenceLow": "Low",
     "scanId": "Scan #{{id}}"
   },
   "history": {
@@ -419,6 +446,9 @@
     "closeNotification": "Close notification"
   },
   "pagination": {
-    "page": "Page {{current}} of {{total}}"
+    "page": "Page {{current}} of {{total}}",
+    "navLabel": "Pagination",
+    "prevLabel": "Previous page",
+    "nextLabel": "Next page"
   }
 }

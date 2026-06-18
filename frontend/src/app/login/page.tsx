@@ -88,9 +88,7 @@ export default function LoginPage() {
         mode === "login" ? t("login.loginSuccess") : t("login.registerSuccess"),
       );
 
-      setTimeout(() => {
-        router.replace(nextPath);
-      }, 800);
+      router.replace(nextPath);
     } catch (error) {
       if (error instanceof ApiError) {
         toast.error(error.message);

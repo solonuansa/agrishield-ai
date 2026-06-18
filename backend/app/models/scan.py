@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import DateTime, Float, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,6 +12,10 @@ from app.core.database import Base
 
 class Scan(Base):
     __tablename__ = "scans"
+
+    __table_args__ = (
+        Index("ix_scan_outbreak_lookup", "status", "created_at", "latitude", "longitude"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -29,7 +33,8 @@ class Scan(Base):
     crop_type: Mapped[str] = mapped_column(String(20), nullable=False)
 
     # Path relatif di R2: "scans/{year}/{month}/{uuid}.webp"
-    image_key: Mapped[str] = mapped_column(String(500), nullable=False)
+    # Nullable: record Scan dibuat dulu sebelum upload ke R2
+    image_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # "pending" | "processing" | "completed" | "failed"
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending", index=True)
@@ -86,7 +91,7 @@ class ScanResult(Base):
     model_version: Mapped[str] = mapped_column(String(50), nullable=False)
     is_mock: Mapped[bool] = mapped_column(nullable=False, default=False)
 
-    # Rekomendasi dari Anthropic (disimpan sebagai teks markdown)
+    # Rekomendasi dari Google Gemini (disimpan sebagai teks markdown)
     recommendation: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     processed_at: Mapped[datetime] = mapped_column(

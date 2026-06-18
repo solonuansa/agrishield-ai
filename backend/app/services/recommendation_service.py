@@ -3,9 +3,11 @@ Service rekomendasi penanganan penyakit tanaman menggunakan Google Gemini.
 Hanya file ini yang boleh memanggil Gemini API.
 """
 
+import asyncio
 import logging
 
 import google.generativeai as genai
+from google.api_core import exceptions as google_exceptions
 
 from app.core.config import settings
 
@@ -113,31 +115,51 @@ async def get_recommendation(
         confidence_pct=confidence_pct,
     )
 
-    try:
-        model = _get_client()
-        import asyncio
-        response = await asyncio.wait_for(
-            asyncio.to_thread(model.generate_content, prompt),
-            timeout=30.0,
-        )
-        recommendation = response.text
-        logger.info(f"Rekomendasi Gemini berhasil untuk penyakit: {disease}")
-        return recommendation
+    model = _get_client()
 
-    except asyncio.TimeoutError:
-        logger.error(f"Gemini API timeout untuk penyakit: {disease}")
-        disease_name = DISEASE_DISPLAY_NAMES.get(disease, disease)
-        return (
-            f"## {disease_name}\n\n"
-            f"Layanan rekomendasi sedang sibuk. Silakan coba lagi nanti."
-        )
-    except Exception as exc:
-        logger.error(f"Gemini API error untuk penyakit {disease}: {exc}")
-        # Fallback ringan — jangan gagalkan seluruh scan hanya karena rekomendasi gagal
-        disease_name = DISEASE_DISPLAY_NAMES.get(disease, disease)
-        return (
-            f"## {disease_name}\n\n"
-            f"Penyakit ini terdeteksi pada tanaman Anda dengan keyakinan {confidence_pct}%.\n\n"
-            f"Rekomendasi penanganan saat ini tidak tersedia. "
-            f"Silakan konsultasikan dengan penyuluh pertanian setempat."
-        )
+    max_retries = 3
+    last_exc: Exception | None = None
+
+    for attempt in range(max_retries):
+        try:
+            response = await asyncio.wait_for(
+                asyncio.to_thread(model.generate_content, prompt),
+                timeout=30.0,
+            )
+            recommendation = response.text
+            logger.info(f"Rekomendasi Gemini berhasil untuk penyakit: {disease}")
+            return recommendation
+
+        except asyncio.TimeoutError:
+            logger.warning(f"Gemini API timeout (percobaan {attempt + 1}/{max_retries}): {disease}")
+            last_exc = asyncio.TimeoutError("Gemini API timeout")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(2 ** attempt * 2)
+
+        except google_exceptions.ResourceExhausted as exc:
+            logger.warning(f"Gemini API rate limit (percobaan {attempt + 1}/{max_retries}): {disease}")
+            last_exc = exc
+            if attempt < max_retries - 1:
+                await asyncio.sleep(2 ** attempt * 5)
+
+        except google_exceptions.ServiceUnavailable as exc:
+            logger.warning(f"Gemini API tidak tersedia (percobaan {attempt + 1}/{max_retries}): {disease}")
+            last_exc = exc
+            if attempt < max_retries - 1:
+                await asyncio.sleep(2 ** attempt * 3)
+
+        except Exception as exc:
+            logger.error(f"Gemini API error untuk penyakit {disease} (percobaan {attempt + 1}/{max_retries}): {exc}")
+            last_exc = exc
+            if attempt < max_retries - 1:
+                await asyncio.sleep(2 ** attempt * 2)
+
+    # Semua retry gagal — fallback
+    logger.error(f"Semua retry Gemini gagal untuk penyakit {disease}: {last_exc}")
+    disease_name = DISEASE_DISPLAY_NAMES.get(disease, disease)
+    return (
+        f"## {disease_name}\n\n"
+        f"Penyakit ini terdeteksi pada tanaman Anda dengan keyakinan {confidence_pct}%.\n\n"
+        f"Rekomendasi penanganan saat ini tidak tersedia. "
+        f"Silakan konsultasikan dengan penyuluh pertanian setempat."
+    )

@@ -33,6 +33,7 @@ export default function ScanPage() {
   const toast = useToast();
   const previewUrlRef = useRef<string | null>(null);
   const scanPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollCountRef = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -130,25 +131,28 @@ export default function ScanPage() {
 
       setScanData(data);
 
-      let pollCount = 0;
+      pollCountRef.current = 0;
       const MAX_POLL_RETRIES = 60;
       const pollInterval = setInterval(async () => {
-        pollCount++;
+        pollCountRef.current++;
         try {
           const updated = await apiGet<ScanResponse>(`/scans/${data.id}`);
           if (updated.status !== "processing" && updated.status !== "pending") {
             setScanData(updated);
             clearInterval(pollInterval);
+            scanPollRef.current = null;
             setIsSubmitting(false);
             return;
           }
         } catch {
           clearInterval(pollInterval);
+          scanPollRef.current = null;
           setIsSubmitting(false);
           return;
         }
-        if (pollCount >= MAX_POLL_RETRIES) {
+        if (pollCountRef.current >= MAX_POLL_RETRIES) {
           clearInterval(pollInterval);
+          scanPollRef.current = null;
           setIsSubmitting(false);
           setErrorMessage(t("scan.timeoutError"));
         }
@@ -162,7 +166,7 @@ export default function ScanPage() {
       }
       setIsSubmitting(false);
     }
-  }, [selectedFile, cropType, coords, t]);
+  }, [selectedFile, cropType, coords, t, toast]);
 
   return (
     <div className="mx-auto max-w-5xl px-6 pb-16 pt-10 sm:pb-20 sm:pt-12">

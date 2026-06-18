@@ -1,5 +1,6 @@
 """Pydantic schemas untuk User — request dan response."""
 
+import re
 import uuid
 from datetime import datetime
 
@@ -16,10 +17,26 @@ class UserRegisterRequest(BaseModel):
 
     @field_validator("password")
     @classmethod
-    def password_min_length(cls, v: str) -> str:
+    def password_strength(cls, v: str) -> str:
         if len(v) < 8:
             raise ValueError("Password minimal 8 karakter")
+        if not re.search(r"[A-Za-z]", v):
+            raise ValueError("Password harus mengandung setidaknya 1 huruf")
+        if not re.search(r"[0-9]", v):
+            raise ValueError("Password harus mengandung setidaknya 1 angka")
         return v
+
+    @field_validator("phone_number")
+    @classmethod
+    def phone_format(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        cleaned = re.sub(r"[\s\-\(\)]", "", v)
+        if not re.match(r"^(\+62|0)[0-9]{9,13}$", cleaned):
+            raise ValueError(
+                "Nomor telepon tidak valid. Gunakan format Indonesia (+62xxx atau 08xxx)"
+            )
+        return cleaned
 
     @field_validator("full_name")
     @classmethod
@@ -45,7 +62,6 @@ class UserResponse(BaseModel):
     phone_number: str | None
     role: str
     is_active: bool
-    is_verified: bool
     province: str | None
     city: str | None
     created_at: datetime
