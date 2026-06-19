@@ -188,7 +188,7 @@ export default function HeroSection() {
                 className="absolute -bottom-3 -left-6 z-20 rounded-xl border border-cream/10 bg-forest-800/95 px-4 py-3 shadow-lg backdrop-blur-md"
               >
                 <p className="text-[0.6rem] font-bold uppercase tracking-wider text-cream/60">{t("hero.phoneScans")}</p>
-                <p className="mt-0.5 font-serif text-xl font-semibold text-cream">12.450+</p>
+                <p className="mt-0.5 font-serif text-xl font-semibold text-cream">{t("hero.phoneScansCount")}</p>
                 <div className="mt-1.5 flex items-center gap-1">
                   <span className="h-1 w-1 rounded-full bg-emerald-400" />
                   <span className="text-[0.65rem] text-cream/60">{t("hero.phoneActive")}</span>

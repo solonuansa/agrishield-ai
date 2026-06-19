@@ -21,28 +21,50 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+    command: postgres -c shared_buffers=256MB -c effective_cache_size=1GB -c max_connections=50
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    # Port tidak di-expose ke host di production
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
 
   # ── Redis ─────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: agrishield_redis
     restart: always
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
-    # Port tidak di-expose ke host di production
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
 
   # ── Backend API (FastAPI) ──────────────────────────────────
   api:
@@ -67,6 +89,16 @@ services:
       start_period: 15s
       retries: 3
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${UVICORN_WORKERS:-4}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
 
   # ── Celery Worker ─────────────────────────────────────────
   worker:
@@ -84,7 +116,22 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.tasks.celery_app inspect ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     command: celery -A app.tasks.celery_app worker --loglevel=warning --concurrency=${CELERY_CONCURRENCY:-4}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1G
 
   # ── ML Service ────────────────────────────────────────────
   ml-service:
@@ -95,7 +142,23 @@ services:
     environment:
       USE_MOCK_MODEL: ${USE_MOCK_MODEL:-false}
       ENVIRONMENT: production
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
     command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --workers ${ML_WORKERS:-2}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
 
   # ── Nginx (Reverse Proxy + Static Files) ──────────────────
   nginx:
@@ -107,11 +170,25 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
-      # Sertifikat SSL — isi dengan path sertifikat di server
-      # Gunakan Certbot/Let's Encrypt: certbot certonly --nginx -d yourdomain.com
       - /etc/letsencrypt:/etc/letsencrypt:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
 
 volumes:
   postgres_data:

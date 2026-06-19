@@ -50,6 +50,8 @@ function Stat({ value, suffix, label }: { value: number; suffix: string; label: 
   );
 }
 
+const STAT_VALUES = { farmers: 10000, diseases: 9, provinces: 34, accuracy: 85 };
+
 export default function StatsSection() {
   const { t } = useTranslation();
   const reduceMotion = useReducedMotion();
@@ -64,10 +66,10 @@ export default function StatsSection() {
           viewport={{ once: true, margin: "-60px" }}
           className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12"
         >
-          <Stat value={10000} suffix="+" label={t("stats.farmers")} />
-          <Stat value={9} suffix="" label={t("stats.diseases")} />
-          <Stat value={34} suffix="" label={t("stats.provinces")} />
-          <Stat value={85} suffix="%+" label={t("stats.accuracy")} />
+          <Stat value={STAT_VALUES.farmers} suffix="+" label={t("stats.farmers")} />
+          <Stat value={STAT_VALUES.diseases} suffix="" label={t("stats.diseases")} />
+          <Stat value={STAT_VALUES.provinces} suffix="" label={t("stats.provinces")} />
+          <Stat value={STAT_VALUES.accuracy} suffix="%+" label={t("stats.accuracy")} />
         </motion.div>
       </div>
     </section>

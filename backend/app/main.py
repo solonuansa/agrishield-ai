@@ -15,6 +15,16 @@ from app.api import api_router
 from app.core.config import settings
 from app.core.logging import setup_logging
 
+# Sentry error tracking — inisialisasi paling awal (hanya di production)
+if settings.environment == "production":
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.environment,
+        traces_sample_rate=0.1,
+    )
+    logger.info("Sentry SDK initialized for production error tracking.")
+
 logger = logging.getLogger(__name__)
 
 limiter = Limiter(key_func=get_remote_address)
@@ -23,8 +33,8 @@ app = FastAPI(
     title="AgriShield AI API",
     description="Platform deteksi penyakit tanaman berbasis AI untuk petani Indonesia.",
     version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=None if settings.environment == "production" else "/docs",
+    redoc_url=None if settings.environment == "production" else "/redoc",
 )
 
 app.state.limiter = limiter
@@ -38,8 +48,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
 
 # Daftarkan semua router dengan prefix /api
@@ -90,6 +100,10 @@ async def on_startup():
         logger.info("Koneksi Redis berhasil dibuat.")
     except Exception as exc:
         logger.warning(f"Redis gagal diinisialisasi: {exc}")
+
+    # Prometheus metrics
+    from prometheus_fastapi_instrumentator import Instrumentator
+    Instrumentator().instrument(app).expose(app, endpoint="/api/metrics")
 
 
 @app.on_event("shutdown")

@@ -30,7 +30,7 @@ export default function MapPage() {
     queryKey: ["heatmap"],
     queryFn: async () => {
       try {
-        const liveData = await apiGet<HeatmapResponse>("/map/heatmap?months=6", null, "force-cache");
+        const liveData = await apiGet<HeatmapResponse>("/map/heatmap?months=6");
         if (!liveData.points.length) return DUMMY_HEATMAP;
         return liveData;
       } catch {

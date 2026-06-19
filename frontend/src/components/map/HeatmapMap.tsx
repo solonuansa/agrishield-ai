@@ -46,6 +46,22 @@ function FitBounds({ points }: { points: { lat: number; lng: number }[] }) {
   return null;
 }
 
+function HeatmapLayer({ data }: { data: Array<[number, number, number]> }) {
+  const map = useMap();
+  useEffect(() => {
+    const heat = (L as unknown as { heatLayer: (d: Array<[number, number, number]>, opts: Record<string, unknown>) => L.Layer }).heatLayer(data, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 10,
+      max: 1.0,
+      gradient: { 0.4: "#15803d", 0.6: "#a16207", 0.85: "#b91c1c" },
+    });
+    heat.addTo(map);
+    return () => { heat.remove(); };
+  }, [data, map]);
+  return null;
+}
+
 export default function HeatmapMap({ points }: { points: HeatmapPoint[] }) {
   const { t } = useTranslation();
   const heatData: Array<[number, number, number]> = useMemo(
@@ -53,21 +69,8 @@ export default function HeatmapMap({ points }: { points: HeatmapPoint[] }) {
     [points],
   );
 
-  useEffect(() => {
-    const heat = (L as unknown as { heatLayer: (data: Array<[number, number, number]>, opts: Record<string, unknown>) => L.Layer }).heatLayer(heatData, {
-      radius: 25,
-      blur: 15,
-      maxZoom: 10,
-      max: 1.0,
-      gradient: { 0.4: "#15803d", 0.6: "#a16207", 0.85: "#b91c1c" },
-    });
-    const container = L.DomUtil.get("heatmap-container");
-    if (container) heat.addTo((window as unknown as Record<string, unknown>).__map as L.Map);
-    return () => { heat.remove(); };
-  }, [heatData]);
-
   return (
-    <div id="heatmap-container" style={{ height: "100%", width: "100%" }}>
+    <div style={{ height: "100%", width: "100%" }}>
       <MapContainer
         center={[-7.73, 110.37]}
         zoom={10}
@@ -79,6 +82,7 @@ export default function HeatmapMap({ points }: { points: HeatmapPoint[] }) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <FitBounds points={points} />
+        <HeatmapLayer data={heatData} />
         {points.map((point) => (
           <Marker
             key={point.scan_id}

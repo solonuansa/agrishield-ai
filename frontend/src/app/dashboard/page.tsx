@@ -43,7 +43,7 @@ function DashboardContent() {
   const userName = session?.user?.full_name
     ? firstName(session.user.full_name)
     : "Petani";
-  const greeting = useMemo(() => getGreeting(t), []);
+  const greeting = useMemo(() => getGreeting(t), [t]);
 
   // Filter bulan
   const [months, setMonths] = useState("6");

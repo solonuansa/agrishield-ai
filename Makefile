@@ -103,3 +103,17 @@ endif
 
 prod-migrate:
 	docker compose -f docker-compose.prod.yml run --rm api alembic upgrade head
+
+# ---- Backup ----
+
+backup-db:
+	./scripts/backup-db.sh
+
+restore-db:
+ifndef f
+	$(error Tentukan file backup: make restore-db f=./backups/agrishield_db_20260329_020000.sql.gz)
+endif
+	gunzip -c $(f) | docker compose exec -T db psql -U postgres -d agrishield
+
+backup-db-prod:
+	./scripts/backup-db.sh ./backups/prod

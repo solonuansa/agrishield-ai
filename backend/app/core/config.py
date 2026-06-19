@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     # Redis
     redis_url: str = "redis://redis:6379/0"
+    redis_password: str = ""
 
     # ML Service
     ml_service_url: str = "http://ml-service:8001"
@@ -41,6 +42,9 @@ class Settings(BaseSettings):
 
     # Logging
     log_level: str = "INFO"
+
+    # Error tracking (Sentry)
+    sentry_dsn: str = ""
 
     # CORS
     allowed_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]

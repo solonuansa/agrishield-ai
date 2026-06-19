@@ -31,8 +31,11 @@ async def init_redis() -> redis.Redis:
     if _redis_pool is None:
         async with _redis_lock:
             if _redis_pool is None:
+                redis_url = settings.redis_url
+                if settings.redis_password:
+                    redis_url = redis_url.replace("redis://", f"redis://:{settings.redis_password}@")
                 _redis_pool = redis.from_url(
-                    settings.redis_url,
+                    redis_url,
                     decode_responses=True,
                     socket_connect_timeout=5,
                     socket_timeout=5,

@@ -23,6 +23,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     ref
   ) => {
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
+    const errorId = error && inputId ? `${inputId}-error` : undefined;
+    const hintId = hint && !error && inputId ? `${inputId}-hint` : undefined;
+    const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
 
     return (
       <div className="w-full">
@@ -36,6 +39,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             id={inputId}
             className={`field-input appearance-none pr-8 ${error ? "error" : ""} ${className}`}
+            aria-invalid={error ? "true" : undefined}
+            aria-describedby={describedBy}
             {...props}
           >
             {placeholder && (
