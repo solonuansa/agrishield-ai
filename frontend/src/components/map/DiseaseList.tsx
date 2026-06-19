@@ -17,14 +17,14 @@ interface DiseaseListProps {
   filteredPoints: HeatmapPoint[];
   isLoading: boolean;
   pointLimit: number;
-  setPointLimit: React.Dispatch<React.SetStateAction<number>>;
+  onLoadMore: () => void;
 }
 
 export function DiseaseList({
   filteredPoints,
   isLoading,
   pointLimit,
-  setPointLimit,
+  onLoadMore,
 }: DiseaseListProps) {
   const { t, i18n } = useTranslation();
 
@@ -86,7 +86,7 @@ export function DiseaseList({
           {filteredPoints.length > pointLimit && (
             <div className="border-t border-cream-darker/60 px-4 py-3 text-center">
               <button
-                onClick={() => setPointLimit((prev) => prev + 20)}
+                onClick={onLoadMore}
                 className="text-sm font-medium text-forest-700 transition-colors hover:text-clay"
               >
                 {t("map.loadMore", { count: filteredPoints.length - pointLimit })}

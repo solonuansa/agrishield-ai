@@ -86,11 +86,11 @@ export default function MapPage() {
 
       <MapFilters
         cropFilter={cropFilter}
-        setCropFilter={setCropFilter}
+        onCropFilterChange={setCropFilter}
         diseaseFilter={diseaseFilter}
-        setDiseaseFilter={setDiseaseFilter}
+        onDiseaseFilterChange={setDiseaseFilter}
         minConfidence={minConfidence}
-        setMinConfidence={setMinConfidence}
+        onMinConfidenceChange={setMinConfidence}
         uniqueDiseases={uniqueDiseases}
       />
 
@@ -123,7 +123,7 @@ export default function MapPage() {
         filteredPoints={filteredPoints}
         isLoading={isLoading}
         pointLimit={pointLimit}
-        setPointLimit={setPointLimit}
+        onLoadMore={() => setPointLimit((prev) => prev + 20)}
       />
     </div>
   );

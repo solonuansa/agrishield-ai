@@ -15,6 +15,8 @@ from app.api import api_router
 from app.core.config import settings
 from app.core.logging import setup_logging
 
+logger = logging.getLogger(__name__)
+
 # Sentry error tracking — inisialisasi paling awal (hanya di production)
 if settings.environment == "production":
     import sentry_sdk
@@ -24,8 +26,6 @@ if settings.environment == "production":
         traces_sample_rate=0.1,
     )
     logger.info("Sentry SDK initialized for production error tracking.")
-
-logger = logging.getLogger(__name__)
 
 limiter = Limiter(key_func=get_remote_address)
 

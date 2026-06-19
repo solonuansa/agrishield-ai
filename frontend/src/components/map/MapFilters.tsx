@@ -7,21 +7,21 @@ import { getCropOptions } from "@/lib/map-utils";
 
 interface MapFiltersProps {
   cropFilter: "all" | "rice" | "corn";
-  setCropFilter: React.Dispatch<React.SetStateAction<"all" | "rice" | "corn">>;
+  onCropFilterChange: (value: "all" | "rice" | "corn") => void;
   diseaseFilter: string;
-  setDiseaseFilter: React.Dispatch<React.SetStateAction<string>>;
+  onDiseaseFilterChange: (value: string) => void;
   minConfidence: number;
-  setMinConfidence: React.Dispatch<React.SetStateAction<number>>;
+  onMinConfidenceChange: (value: number) => void;
   uniqueDiseases: string[];
 }
 
 export function MapFilters({
   cropFilter,
-  setCropFilter,
+  onCropFilterChange,
   diseaseFilter,
-  setDiseaseFilter,
+  onDiseaseFilterChange,
   minConfidence,
-  setMinConfidence,
+  onMinConfidenceChange,
   uniqueDiseases,
 }: MapFiltersProps) {
   const { t } = useTranslation();
@@ -37,7 +37,7 @@ export function MapFilters({
         options={[...CROP_OPTIONS]}
         value={cropFilter}
         onChange={(e) =>
-          setCropFilter(e.target.value as "all" | "rice" | "corn")
+          onCropFilterChange(e.target.value as "all" | "rice" | "corn")
         }
         className="w-32"
       />
@@ -48,7 +48,7 @@ export function MapFilters({
             ...uniqueDiseases.map((d) => ({ value: d, label: d })),
           ]}
           value={diseaseFilter}
-          onChange={(e) => setDiseaseFilter(e.target.value)}
+          onChange={(e) => onDiseaseFilterChange(e.target.value)}
           className="w-44"
         />
       )}
@@ -59,7 +59,7 @@ export function MapFilters({
           min={0}
           max={100}
           value={Math.round(minConfidence * 100)}
-          onChange={(e) => setMinConfidence(Number(e.target.value) / 100)}
+          onChange={(e) => onMinConfidenceChange(Number(e.target.value) / 100)}
           className="h-1 w-24 accent-forest-700"
         />
         <span className="w-8 text-xs tabular-nums text-ink-soft">

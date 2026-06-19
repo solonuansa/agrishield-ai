@@ -8,7 +8,6 @@ export type UserResponse = {
   phone_number: string | null;
   role: string;
   is_active: boolean;
-  is_verified: boolean;
   province: string | null;
   city: string | null;
   created_at: string;
@@ -34,16 +33,31 @@ export type ScanResult = {
   processed_at: string | null;
 };
 
-export type ScanResponse = {
+type ScanBase = {
   id: string;
   crop_type: "rice" | "corn";
-  status: "pending" | "processing" | "completed" | "failed";
   image_url: string | null;
   latitude: number | null;
   longitude: number | null;
   created_at: string;
-  result: ScanResult | null;
 };
+
+export type ScanPending = ScanBase & {
+  status: "pending" | "processing";
+  result: null;
+};
+
+export type ScanCompleted = ScanBase & {
+  status: "completed";
+  result: ScanResult;
+};
+
+export type ScanFailed = ScanBase & {
+  status: "failed";
+  result: null;
+};
+
+export type ScanResponse = ScanPending | ScanCompleted | ScanFailed;
 
 export type DashboardStats = {
   total_scans: number;

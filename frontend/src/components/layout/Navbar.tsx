@@ -69,8 +69,11 @@ export default function Navbar() {
 
   const switchLanguage = (code: string) => {
     i18n.changeLanguage(code);
-    document.documentElement.lang = code;
   };
+
+  useEffect(() => {
+    document.documentElement.lang = currentLang;
+  }, [currentLang]);
 
   return (
     <header

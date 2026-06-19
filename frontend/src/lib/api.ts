@@ -95,11 +95,10 @@ async function request<T>(
 
   if (response.status === 401 && retry) {
     if (isRefreshing) {
-      // Queue this request until refresh completes
       return new Promise((resolve, reject) => {
         refreshQueue.push((newToken) => {
           if (newToken) {
-            resolve(request<T>(path, init, false));
+            resolve(request<T>(path, stripSignal(init), false));
           } else {
             reject(new ApiError("Sesi telah berakhir. Silakan masuk kembali.", 401));
           }
@@ -113,7 +112,7 @@ async function request<T>(
     await processRefreshQueue(newToken);
 
     if (newToken) {
-      return request<T>(path, init, false);
+      return request<T>(path, stripSignal(init), false);
     }
 
     throw new ApiError("Sesi telah berakhir. Silakan masuk kembali.", 401);
@@ -139,8 +138,10 @@ export function getAuthHeaders(token?: string | null): Record<string, string> {
 export async function apiGet<T>(
   path: string,
   token?: string | null,
-  cache: RequestCache = "no-store"
+  cache: RequestCache = "no-store",
+  timeout?: number
 ): Promise<T> {
+  const { signal } = createTimeoutSignal(timeout);
   return request<T>(
     path,
     {
@@ -148,6 +149,7 @@ export async function apiGet<T>(
       headers: {
         ...getAuthHeaders(token),
       },
+      signal,
     },
     true,
     cache
@@ -157,27 +159,46 @@ export async function apiGet<T>(
 export async function apiPost<T>(
   path: string,
   body: unknown,
-  token?: string | null
+  token?: string | null,
+  timeout?: number
 ): Promise<T> {
+  const { signal } = createTimeoutSignal(timeout);
   return request<T>(path, {
     method: "POST",
     body: JSON.stringify(body),
     headers: {
       ...getAuthHeaders(token),
     },
+    signal,
   });
 }
 
 export async function apiPostForm<T>(
   path: string,
   formData: FormData,
-  token?: string | null
+  token?: string | null,
+  timeout?: number
 ): Promise<T> {
+  const { signal } = createTimeoutSignal(timeout);
   return request<T>(path, {
     method: "POST",
     body: formData,
     headers: {
       ...getAuthHeaders(token),
     },
+    signal,
   });
+}
+
+function createTimeoutSignal(timeout?: number): { signal?: AbortSignal } {
+  if (!timeout) return {};
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(new Error(`Request timeout after ${timeout}ms`)), timeout);
+  return { signal: controller.signal };
+}
+
+function stripSignal(init?: RequestInit): RequestInit | undefined {
+  if (!init) return init;
+  const { signal: _signal, ...rest } = init;
+  return rest;
 }

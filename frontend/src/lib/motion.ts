@@ -196,13 +196,13 @@ export const tapSink = { scale: 0.97 };
 // ============================================================
 
 /** Counter animation — for stat numbers */
-export const countUp = (target: number, delay = 0) => ({
+export const countUp: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { delay, duration: duration.slow },
+    transition: { duration: duration.slow },
   },
-});
+};
 
 /** Draw SVG path — for chart line animations */
 export const drawPath: Variants = {

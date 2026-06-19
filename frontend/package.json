@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.6",
+    "@tanstack/react-query-devtools": "^5.101.0",
     "@types/leaflet.heat": "^0.2.5",
     "framer-motion": "^12.38.0",
     "i18next": "^26.3.1",
